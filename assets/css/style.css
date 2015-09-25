@@ -50,3 +50,7 @@ p.answer {
 p:hover.answer {
   background-color: #EE6E73;
 }
+
+#hiden {
+  display: none;
+}

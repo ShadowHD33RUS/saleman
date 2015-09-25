@@ -16,9 +16,9 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css" media="screen" title="no title" charset="utf-8">
 </head>
-<body ng-app="saleman">
+<body>
 
-  <!-- <div class="centered" id="appPreloader">
+  <div class="centered" id="appPreloader">
     <div class="centered" style="width:64px">
       <div class="preloader-wrapper big active">
         <div class="spinner-layer spinner-blue-only">
@@ -33,7 +33,7 @@
       </div>
     </div>
     <span class="preloaderText">Загрузка приложения</span>
-  </div> -->
+  </div>
 
 
 
@@ -83,17 +83,71 @@
   <script src="app/components/accounts/accountsController.js" charset="utf-8"></script>
   <script src="app/components/recover/recoverController.js" charset="utf-8"></script>
   <script type="text/javascript">
+    function loadApplication() {
+      angular.bootstrap(document.body, ['saleman']);
+      $('#appPreloader').css('display', 'none');
+      $('#hiden').css('display', 'block');
+    }
+    
     jQuery(document).ready(function(){
       jQuery(".button-collapse").sideNav();
-      /*jQuery("#hiden").css('display', 'block');
-      var intervalHandler = setInterval(function(){
-        var el = jQuery(".container");
-        if(el.length !== 0) {
-          el.css('display', 'block');
-          jQuery('#appPreloader').css('display', 'none');
-          clearInterval(intervalHandler);
+      // jQuery("#hiden").css('display', 'block');
+      var appCache = localStorage.getItem('app_cache');
+      if(appCache) {
+        appCache = JSON.parse(appCache);
+        if(appCache['tokens'] && appCache['tokens']['refresh']) {
+          //We have some refresh token here
+          $.ajax({
+            url: 'http://185.87.49.173:8080/saleman/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token='+appCache['tokens']['refresh'],
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(data) {
+              var currentUser = {
+                accessToken: data.access_token,
+                refreshToken: data.refresh_token,
+                expiresIn: data.expires_in,
+              };
+              $.ajax({
+                url: 'http://185.87.49.173:8080/saleman/api/account/getInfo?access_token='+data.access_token,
+                dataType: 'json',
+                method: 'POST',
+                contentType: 'application/json',
+                success: function(data) {
+                  currentUser.email = data.account.email,
+                  currentUser.firstname = data.account.firstname;
+                  currentUser.lastname = data.account.lastname;
+                  currentUser.patron = data.account.patron;
+                  currentUser.getFullName = function() {
+                      return this.lastname + ' ' + this.firstname + ' ' + this.patron;
+                  };
+                  //Parse permissions
+                  currentUser.perms = {};
+                  $.each(data.account, function(k,v){
+                      var delim = k.indexOf('Permission');
+                      if(delim != -1) {
+                          currentUser.perms[k.substring(0, delim)] = v;
+                      }
+                  });
+                  currentUser.isAdmin = data.account.admin;
+                  currentUser.blocked = data.company.blocked;
+                  currentUser.nextPayment = data.account.next_payment;
+                  angular.currentUser = currentUser;
+                  loadApplication();
+                },
+                error: function() {
+                  loadApplication();
+                }
+              });
+            },
+            error: function() {
+              loadApplication();
+            }
+          })
+        } else {
+          loadApplication();
         }
-      }, 50);*/
+      }
+      
     });
   </script>
 </body>

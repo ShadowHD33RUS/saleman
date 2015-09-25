@@ -2,24 +2,17 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
 	var thisController = this;
 	thisController.loaded = false;
 	thisController.dataLoading = true;
-	thisController.scripts = [];
 	thisController.searchString = '';
+	thisController.scripts = [];
 
-	var updateList = function(page) {
-		if(!page) page = 0;
-		api.findScripts('', page, function(data) {
+	this.doSearch = function() {
+		thisController.dataLoading = true;
+		thisController.scripts = api.findScripts(thisController.searchString, 0, function(data){
 			thisController.scripts = data.scripts;
-			thisController.loaded = true;
 			thisController.dataLoading = false;
 			$rootScope.$digest();
 		});
-	};
-
-	this.doSearch = function() {
-		api.findScripts(thisController.searchString, function(data){
-			thisController.scripts = data.scripts;
-			$rootScope.$digest();
-		});
+		thisController.loaded = true;
 	};
 
 	this.preDelete = function (idToDelete) {
@@ -27,13 +20,13 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
 		function(){ // OK button in dialog
 			thisController.dataLoading = true;
 			api.removeScript(idToDelete, function() { // Action
-				updateList();
+				thisController.doSearch();
+				thisController.dataLoading = false;
 			}, function() { // Undo action
-				thisController.dataLoading = true;
-				
+				thisController.dataLoading = false;
 			});
 		}, null, "Внимание!");
 	};
 	
-	updateList();
+	this.doSearch();
 }]);

@@ -64,7 +64,7 @@
     cache.init();
 
     var api = angular.module('api', ['notify']);
-    api.factory('api', ['notification', function (notification) {
+    api.factory('api', ['notification', '$rootScope', function (notification, $rootScope) {
         
         //Reusable code
         var errorHandler = function (err) {
@@ -116,12 +116,6 @@
             if(expires_in) {
                 refreshTokenTimerHandler = setTimeout(refreshAccessToken, (expires_in-10) * 1000);
             } else {
-                // newApi.login(currentUser.email, currentUser.password, function(result) {
-                //     currentUser.accessToken = result.accessToken;
-                //     currentUser.refreshToken = result.refreshToken;
-                //     currentUser.expiresIn = result.expiresIn;
-                //     refreshTokenTimerHandler = setTimeout(refreshAccessToken, (result.expiresIn-10) * 1000);
-                // }, null, true);
                 jQuery.ajax({
                     url: urlRoot + '/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token='+currentUser.refreshToken,
                     method: 'GET',
@@ -129,6 +123,7 @@
                         currentUser.accessToken = res.access_token;
                         currentUser.refreshToken = res.refresh_token;
                         currentUser.expiresIn = res.expires_in;
+                        cache.setItem('tokens', 'refresh', res.refresh_token);
                         refreshAccessToken(res.expires_in);
                     },
                     error: function() {
@@ -158,9 +153,9 @@
                             email: email,
                             accessToken: result.access_token,
                             refreshToken: result.refresh_token,
-                            expiresIn: result.expires_in,
-                            password: password
+                            expiresIn: result.expires_in
                         };
+                        cache.setItem('tokens', 'refresh', result.refresh_token);
                         refreshAccessToken(20);
                         sendRequest("/api/account/getInfo", {
                             data: ''
@@ -195,12 +190,18 @@
             currentUser = null;
             clearTimeout(refreshTokenTimerHandler);
             notification.info("Вы вышли из приложения");
+            cache.removeItem('tokens', 'refresh');
             callback();
         };
         newApi.isLoggedIn = function () {
-            return currentUser !== null;
+            return newApi.getCurrentUser() !== null;
         };
         newApi.getCurrentUser = function () {
+            if(!currentUser && angular.currentUser) {
+                currentUser = angular.currentUser;
+                delete angular.currentUser;
+                $rootScope.$broadcast('authChange', {});
+            }
             return currentUser;
         };
         newApi.sendRecoverEmail = function(email) {
@@ -254,12 +255,14 @@
                     callback(d);
                 }, errorHandler);
                 var result = [],
-                    composedFio = null;
-                cache.getItems('clients').forEach(function(val, idx, arr){
-                    composedFio = val.lastname+' '+val.firstname+' '+val.patron;
-                    if(composedFio.indexOf(searchString) != -1)
-                        result.push(val);
-                });
+                    composedFio = null,
+                    cached = cache.getItems('clients');
+                if(cached)
+                    cached.forEach(function(val, idx, arr){
+                        composedFio = val.lastname+' '+val.firstname+' '+val.patron;
+                        if(composedFio.indexOf(searchString) != -1)
+                            result.push(val);
+                    });
                 return result;
             }
         };
@@ -304,9 +307,23 @@
                 data: {
                     "string":searchString,
                     count: MAX_CLIENTS,
-                    currentPosition: page
+                    'currentPosition': (page ? page : 0)
                 }
-            }, null, "Произошла ошибка при выборке. Обратитесь в службу поддержки", callback, errorHandler);
+            }, null, "Произошла ошибка при выборке. Обратитесь в службу поддержки", function(data){
+                data.scripts.forEach(function(val, idx, arr){
+                    cache.setItem('scripts', val.script_id, val);
+                });
+                callback(data);
+            }, errorHandler);
+            var result = [],
+                cached = cache.getItems('scripts', MAX_CLIENTS, page);
+            if(cached)
+                cached.forEach(function(val, idx, arr) {
+                    if(val.script_name.indexOf(searchString) != -1) {
+                        result.push(val);
+                    }
+                });
+            return result;
         };
         newApi.findScriptById = function (id, callback) {
             sendRequest("/api/script/findById", {
@@ -323,7 +340,10 @@
                     script_name: script.name,
                     json_string: script.data
                 }
-            }, "Скрипт успешно создан", "Не удалось создать скрипт. Обратитесь в службу поддержки", callback, errorHandler);
+            }, "Скрипт успешно создан", "Не удалось создать скрипт. Обратитесь в службу поддержки", function(res) {
+                cache.setItem('scripts', res.script_id, script);
+                callback(res);
+            }, errorHandler);
         };
         newApi.updateScript = function (script, callback) {
             sendRequest("/api/script/updateScript",{
@@ -333,9 +353,12 @@
                     json_string: script.data
                 }
             }, "Скрипт успешно обновлен", "Невозможно обновить скрипт. Пожалуйста, обратитесь в службу поддержки",
-            callback, errorHandler);
+            function(res) {
+                cache.setItem('scripts', script.script_id, script);
+            }, errorHandler);
         };
         newApi.removeScript = function (id, callback, undoCallback) {
+            cache.removeItem('scripts', id);
             if(undoCallback) {
                 sendRequest("/api/script/removeScript",{
                     data: {script_id: id}

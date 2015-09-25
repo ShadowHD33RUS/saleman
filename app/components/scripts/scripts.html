@@ -29,6 +29,9 @@
                         <label for="searchScripts">Поиск скриптов по названию</label>
                     </div>
                 </form>
+                <div class="progress" ng-show="scriptsCtrl.dataLoading">
+                    <div class="indeterminate"></div>
+                </div>
                 <table class="responsive-table">
                     <thead>
                         <tr>

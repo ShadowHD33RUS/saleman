@@ -1,0 +1,37 @@
+<div class="row">
+    <div class="col s12 m6 l4">
+        <div class="row">
+            <div class="col s12">
+                <div class="input-field">
+                    <input id="topic" type="text" ng-model="supportCtrl.topic" />
+                    <label for="topic">Тема сообщения</label>
+                </div>
+            </div>
+            <div class="col s12">
+                <div class="input-field">
+                    <input id="email" type="text" ng-model="supportCtrl.email" />
+                    <label for="email" class="active">Email для ответа</label>
+                </div>
+            </div>
+            <div class="col s12">
+                <div class="input-field">
+                    <textarea id="message" class="materialize-textarea" ng-model="supportCtrl.message"></textarea>
+                    <label for="message">Сообщение</label>
+                </div>
+            </div>
+            <div class="col s12">
+                <button ng-click="supportCtrl.send()" class="btn-large">Отправить</button>
+            </div>
+        </div>
+    </div>
+    <div class="col s12 m6 l8">
+        <blockquote>
+            <p class="flow-text">
+                Пожалуйста, попытайтесь описать проблему как можно более подробно.
+                Если возникла ошибка - опишите список последовательных действий, чтобы 
+                смогли повторить ее и понять, где именно она находится.
+            </p>
+        </blockquote>
+        <p class="right-align flow-text">С благодарностью, группа разработчиков</p>
+    </div>
+</div>

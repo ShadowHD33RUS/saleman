@@ -1,0 +1,52 @@
+.centered {
+    width: 160px;
+    height: 64px;
+
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+}
+.preloaderText {
+    display: inline-block;
+    margin-top: 75px;
+}
+
+input.invalid + label::after {
+  width: 200px !important;
+  display: none;
+}
+input.valid + label::after {
+  width: 200px !important;
+  display: none;
+}
+
+input:focus.invalid + label::after {
+  width: 200px !important;
+  display: block;
+  transition: none;
+  -webkit-transition: none;
+  -moz-transition: none;
+}
+input:focus.valid + label::after {
+  width: 200px !important;
+  display: block;
+  transition: none;
+  -webkit-transition: none;
+  -moz-transition: none;
+}
+
+p.answer {
+  cursor: pointer;
+  background-color: #ececec;
+}
+p.answer {
+  cursor: pointer;
+  background-color: #ececec;
+}
+p:hover.answer {
+  background-color: #EE6E73;
+}

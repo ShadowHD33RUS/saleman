@@ -1,0 +1,91 @@
+<div class="row">
+    <h3>Управление аккаунтами</h3>
+    <!-- Editor -->
+    <div class="col s12 m6 l8" id="editor">
+        <div class="card-panel">
+            <div class="row">
+                <div class="col s12">
+                    <div class="input-field">
+                        <input type="text" id="last_name" ng-model="accountsCtrl.currentAccount.last_name" length="80">
+                        <label for="last_name">Фамилия</label>
+                    </div>
+                </div>
+                <div class="col s12">
+                    <div class="input-field">
+                        <input type="text" id="first_name" ng-model="accountsCtrl.currentAccount.first_name" length="80">
+                        <label for="first_name">Имя</label>
+                    </div>
+                </div>
+                <div class="col s12">
+                    <div class="input-field">
+                        <input type="text" id="patron" ng-model="accountsCtrl.currentAccount.patron" length="80">
+                        <label for="patron">Отчество</label>
+                    </div>
+                </div>
+                <div class="col s12">
+                    <div class="input-field">
+                        <input type="text" id="email" ng-model="accountsCtrl.currentAccount.email" length="120" required>
+                        <label for="email">E-mail</label>
+                    </div>
+                </div>
+                <div class="col s12">
+                    <div class="input-field">
+                        <input type="text" id="password" ng-model="accountsCtrl.currentAccount.password" required>
+                        <label for="password">Пароль (оставить пустым, если не хотите менять)</label>
+                    </div>
+                </div>
+                <p class="flow-text">Права доступа</p>
+                <p>
+                    <input type="checkbox" class="filled-in" id="readSc" ng-model="accountsCtrl.perms.scriptReadPermission" />
+                    <label for="readSc">Чтение скрипта</label>
+                </p>
+                <p>
+                    <input type="checkbox" class="filled-in" id="editSc" ng-model="accountsCtrl.perms.scriptEditPermission" />
+                    <label for="editSc">Редактирование скрипта</label>
+                </p>
+                <p>
+                    <input type="checkbox" class="filled-in" id="readCl" ng-model="accountsCtrl.perms.clientReadPermission" />
+                    <label for="readCl">Чтение базы клиентов</label>
+                </p>
+                <p>
+                    <input type="checkbox" class="filled-in" id="editCl" ng-model="accountsCtrl.perms.clientEditPermission" />
+                    <label for="editCl">Редактирование базы клиентов</label>
+                </p>
+                <div class="col s12">
+                    <a href="" class="btn" ng-click="accountsCtrl.save()">Сохранить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- List -->
+    <div class="col s12 m6 l4">
+        <div class="card-panel">
+            <div class="row">
+                <div class="col s12">
+                    <span class="flow-text">Аккаунты</span>
+                    <a href="" style="float:right" class="btn-floating waves-effect waves-light red" ng-click="accountsCtrl.createNew()"><i class="material-icons">add</i></a>
+                </div>
+                <div class="col s10">
+                    <div class="input-field">
+                        <input type="text" id="search" ng-model="accountsCtrl.searchString" ng-change="accountsCtrl.doSearch()">
+                        <label for="search">Фильтр</label>
+                    </div>
+                </div>
+                <div class="col s2">
+                    <div class="input-field">
+                        <div class="btn-flat" style="padding:0">
+                            <i class="material-icons" style="font-size:36px">search</i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12">
+                    <div class="collection">
+                        <a href="" ng-repeat="account in accountsCtrl.filteredAccounts" ng-class="{'collection-item active': accountsCtrl.isActive(account), 'collection-item': !accountsCtrl.isActive(account)}" class="collection-item" ng-click="accountsCtrl.selectAccount(account)">
+                            {{account.email}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="row">
+  <div class="col s12 m6 l4 offset-m3 offset-l4">
+    <div class="card">
+      <form novalidate ng-submit="loginCtrl.doLogin()">
+      <div class="card-content">
+        <span class="card-title black-text">Форма входа в систему</span>
+          <div class="row">
+            <div class="input-field col s12">
+              <input type="text" id="login"
+              ng-class="{true: 'valid', false: 'invalid'}[loginCtrl.model.login.valid]"
+              ng-model="loginCtrl.model.login.data"
+              ng-blur="loginCtrl.validate()">
+              <label for="login" data-error="{{loginCtrl.model.login.msg}}">E-mail</label>
+            </div>
+            <div class="input-field col s12">
+              <input type="password" id="pass"
+              ng-class="{'valid':loginCtrl.model.password.valid, 'invalid': !loginCtrl.model.password.valid}"
+              ng-model="loginCtrl.model.password.data"
+              ng-blur="loginCtrl.validate()">
+              <label for="pass" data-error="{{loginCtrl.model.password.msg}}">Пароль</label>
+            </div>
+          </div>
+      </div>
+      <div class="card-action">
+        <input type="submit" name="name" id="sendButton" class="btn" value="Войти">
+        <a href="#/register" style="color:#fff" class="btn">Регистрация</a>
+        <br />
+        <br />
+        <a href="#/recover">Забыли пароль?</a>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

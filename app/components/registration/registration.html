@@ -1,0 +1,39 @@
+<div class="row">
+  <div class="col s12 m8 l4 offset-m2 offset-l4">
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title black-text">Регистрация в системе</span>
+        <form novalidate>
+          <div class="input-field">
+            <input type="email" id="email" ng-model="regCtrl.user.email.data" ng-blur="regCtrl.user.validate()" ng-class="{true: 'valid', false: 'invalid'}[regCtrl.user.email.valid]">
+            <label data-error="{{regCtrl.user.email.msg}}" for="email">E-mail</label>
+          </div>
+          <div class="input-field">
+            <input type="password" id="pass" ng-model="regCtrl.user.password.data" ng-blur="regCtrl.user.validate()" ng-class="{true: 'valid', false: 'invalid'}[regCtrl.user.password.valid]">
+            <label data-error="{{regCtrl.user.password.msg}}" for="pass">Пароль</label>
+          </div>
+          <div class="input-field">
+            <input type="password" id="pass2" ng-model="regCtrl.user.password2.data" ng-blur="regCtrl.user.validate()" ng-class="{true: 'valid', false: 'invalid'}[regCtrl.user.password2.valid]">
+            <label data-error="{{regCtrl.user.password2.msg}}" for="pass2">Пароль снова</label>
+          </div>
+          <div class="input-field">
+            <input type="text" id="surname" ng-model="regCtrl.user.last_name.data" ng-blur="regCtrl.user.validate()" ng-class="{true: 'valid', false: 'invalid'}[regCtrl.user.last_name.valid]">
+            <label data-error="{{regCtrl.user.last_name.msg}}" for="surname">Фамилия</label>
+          </div>
+          <div class="input-field">
+            <input type="text" id="name" ng-model="regCtrl.user.first_name.data" ng-blur="regCtrl.user.validate()" ng-class="{true: 'valid', false: 'invalid'}[regCtrl.user.first_name.valid]">
+            <label data-error="{{regCtrl.user.first_name.msg}}" for="name">Имя</label>
+          </div>
+          <div class="input-field">
+            <input type="text" id="patron" ng-model="regCtrl.user.patron.data" ng-blur="regCtrl.user.validate()" ng-class="{true: 'valid', false: 'invalid'}[regCtrl.user.patron.valid]">
+            <label data-error="{{regCtrl.user.patron.msg}}" for="patron">Отчество</label>
+          </div>
+        </form>
+      </div>
+      <div class="card-action">
+        <button type="button" name="button" id="sendButton" class="waves-effect waves-light btn" ng-click="regCtrl.register()">Регистрация</button>
+        <a href="#/login" style="color:#fff" class="btn">Вход</a>
+      </div>
+    </div>
+  </div>
+</div>

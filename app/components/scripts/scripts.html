@@ -1,0 +1,57 @@
+<div class="row">
+    <div class="col s12 center-align" style="margin-top: 50px" ng-hide="scriptsCtrl.loaded">
+        <div class="preloader-wrapper big active ">
+            <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                    <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col s12" ng-show="scriptsCtrl.loaded">
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title black-text">
+          Скрипты
+          <div style="display:inline-block;right:30px;position:absolute">
+            <a class="btn-floating btn-large waves-effect waves-light red right-align" href="#/scripttree/0"><i class="material-icons">add</i></a>
+          </div>
+        </span>
+                <form novalidate>
+                    <div class="input-field">
+                        <input ng-change="scriptsCtrl.doSearch()" ng-model="scriptsCtrl.searchString" type="text" id="searchScripts">
+                        <label for="searchScripts">Поиск скриптов по названию</label>
+                    </div>
+                </form>
+                <table class="responsive-table">
+                    <thead>
+                        <tr>
+                            <th>Название скрипта</th>
+                            <th>Создатель</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="script in scriptsCtrl.scripts" view-dropdown>
+                            <td>{{script.script_name}}</td>
+                            <td>{{script.creator.email}}</td>
+                            <td>
+                                <a href="#/scriptrun/{{script.script_id}}" class="btn-flat">Выполнить</a>
+                                <a href="#/scripttree/{{script.script_id}}" class="btn-flat">Редактировать</a>
+                                <a class="delete-icon" href="" ng-click="scriptsCtrl.preDelete(script.script_id)"><i class="material-icons">clear</i></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-action">
+
+            </div>
+        </div>
+    </div>
+</div>

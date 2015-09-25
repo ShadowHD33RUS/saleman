@@ -1,0 +1,90 @@
+<div class="row">
+  <div id="clientModal" class="modal modal-fixed-footer">
+    <div class="modal-content">
+      <h4>Создание/редактирование клиента</h4>
+      <form novalidate="">
+        <div class="input-field">
+          <input ng-model="clientsCtrl.currentClient.lastname" type="text" id="editSurname">
+          <label for="editSurname" class="active">Фамилия</label>
+        </div>
+        <div class="input-field">
+          <input ng-model="clientsCtrl.currentClient.firstname" type="text" id="editName">
+          <label for="editName" class="active">Имя</label>
+        </div>
+        <div class="input-field">
+          <input ng-model="clientsCtrl.currentClient.patron" type="text" id="editPatron">
+          <label for="editPatron" class="active">Отчество</label>
+        </div>
+        <div class="input-field">
+          <input ng-model="clientsCtrl.currentClient.phone" type="text" id="editPhone">
+          <label for="editPhone" class="active">Телефон</label>
+        </div>
+        <div class="input-field">
+          <input ng-model="clientsCtrl.currentClient.email" type="text" id="editEmail">
+          <label for="editEmail" class="active">E-mail</label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <a href="" ng-click="clientsCtrl.save()" class="modal-action modal-close waves-effect waves-green btn-flat">Сохранить</a>
+      <a href="" class="modal-action modal-close waves-effect waves-green btn-flat">Отмена</a>
+    </div>
+  </div>
+  <div class="col s12 center-align" style="margin-top: 50px" ng-hide="clientsCtrl.loaded">
+    <div class="preloader-wrapper big active " >
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col s12" ng-show="clientsCtrl.loaded">
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title black-text">Клиенты
+          <div style="display:inline-block;right:30px;position:absolute">
+            <a class="btn-floating btn-large waves-effect waves-light red right-align" href="" ng-click="clientsCtrl.create()"><i class="material-icons">add</i></a>
+          </div>
+        </span>
+        <form novalidate>
+          <div class="input-field">
+            <input ng-change="clientsCtrl.doSearch()" ng-model="clientsCtrl.searchString" type="text" id="searchClients">
+            <label for="searchClients">Поиск клиентов по ФИО</label>
+          </div>
+        </form>
+        <div class="progress" ng-show="clientsCtrl.dataLoading">
+          <div class="indeterminate"></div>
+        </div>
+        <table class="responsive-table" ng-hide="clientsCtrl.dataLoading">
+          <thead>
+            <tr>
+              <th>ФИО клиента</th>
+              <th>Телефон</th>
+              <th>E-mail</th>
+              <th>Ответственный</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="client in clientsCtrl.clients">
+              <td>{{client.lastname}} {{client.firstname}} {{client.patron}}</td>
+              <td>{{client.phone}}</td>
+              <td>{{client.email}}</td>
+              <td>{{client.creator.email}}</td>
+              <td><a href="" ng-click="clientsCtrl.edit(client)">Редактировать</a></td>
+              <td><a href="" ng-click="clientsCtrl.remove(client)">Удалить</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-action">
+        
+      </div>
+    </div>
+  </div>
+</div>

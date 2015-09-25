@@ -4,32 +4,27 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', function(api,
 	thisController.dataLoading = false;
 	thisController.clients = [];
 	thisController.searchString = '';
-	thisController.clientsCached = [];
 	thisController.currentClient = {};
-	
-	var updateList = function() {
-		api.getAllClients(function(data) {
-			thisController.clients = data.clients;
-			thisController.loaded = true;
-			thisController.dataLoading = false;
-			$rootScope.$digest();
-		});
-	};
 
 	this.doSearch = function() {
 		thisController.dataLoading = true;
 		if(thisController.searchString.length > 0) {
-			api.findClients(thisController.searchString, function(cls){
+			thisController.clients = api.findClients(thisController.searchString, function(cls){
 				thisController.clients = cls.clients;
 				thisController.dataLoading = false;
+				if(!thisController.loaded) thisController.loaded = true;
 				$rootScope.$digest();
 			});
 		} else {
-			api.getAllClients(function(data) {
+			thisController.clients = api.getAllClients(function(data) {
 				thisController.clients = data.clients;
 				thisController.dataLoading = false;
+				if(!thisController.loaded) thisController.loaded = true;
 				$rootScope.$digest();
 			});
+		}
+		if(thisController.clients) {
+			thisController.loaded = true;
 		}
 	};
 
@@ -38,11 +33,17 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', function(api,
 		jQuery('#clientModal').openModal();
 	};
 	this.save = function() {
+		this.dataLoading = true;
 		if(thisController.currentClient.client_id)
-			api.updateClient(thisController.currentClient);
+			api.updateClient(thisController.currentClient, function(){
+				thisController.dataLoading = false;
+			});
 		else
-			api.addClient(thisController.currentClient);
-		updateList();
+			api.addClient(thisController.currentClient, function(updated){
+				thisController.clients = updated;
+				thisController.dataLoading = false;
+				$rootScope.$digest();
+			});
 	};
 	this.create = function() {
 		thisController.currentClient = {
@@ -60,17 +61,17 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', function(api,
 			function(){
 				thisController.dataLoading = true;
 				$rootScope.$digest();
-				api.removeClient(client, function(){
-					updateList();
+				thisController.clients = api.removeClient(client, function(){
+					thisController.doSearch();
 				}, function() {
 					thisController.dataLoading = true;
 					client.id = undefined;
 					api.addClient(client, function() {
-						updateList();
+						thisController.doSearch();
 					}, true);
 				});
 			},
 			null,"Внимание");
 	};
-	updateList();
+	this.doSearch();
 }]);

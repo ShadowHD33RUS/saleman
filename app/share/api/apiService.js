@@ -1,46 +1,74 @@
 (function () {
     
     //Constants
-    var WAIT_TIME = 500;
     var MAX_CLIENTS = 30;
     var urlRoot = 'http://185.87.49.173:8080/saleman';
 
-    //Test data
-
-    //var users = [
-    //  {email: 'admin@admin.ru', password: 'admin', name: 'Богдан', surname: "Уразакаев", patron: "Егорович" }
-    //];
-    //var clients = [
-    //  {id: 1, surname: 'Уразакаев', name: 'Богдан', patron: 'Егорович', phone: '+79004819024', email: 'bogdan.urazakaew@gmail.com'},
-    //  {id: 2, surname: 'Иванов', name: 'Иван', patron: 'Иванович', phone: '+79004819024', email: 'bogdan.urazakaew@gmail.com'},
-    //  {id: 3, surname: 'Петров', name: 'Сергей', patron: 'Сидорович', phone: '+79004819024', email: 'bogdan.urazakaew@gmail.com'},
-    //  {id: 4, surname: 'Валункин', name: 'Петр', patron: 'Иванович', phone: '+79004819024', email: 'bogdan.urazakaew@gmail.com'},
-    //  {id: 5, surname: 'Мелькунов', name: 'Иван', patron: 'Давыдович', phone: '+79004819024', email: 'bogdan.urazakaew@gmail.com'},
-    //];
-    var scripts = [];
-
     var currentUser = null;
 
-    // Load data from local storage, if exist
-    //var p = localStorage.getItem("__clients");
-    //if(p !== null) clients = JSON.parse(p);
-    //
-    //p = localStorage.getItem("__users");
-    //if(p !== null) users = JSON.parse(p);
-    //
-    p = localStorage.getItem("__scripts");
-    if(p !== null) scripts = JSON.parse(p);
-    //
-    //var maxId = clients.length;
-
-    
+    //Cache data, persist in localstorage
+    var cache = {
+        __store: {},
+        setItem: function(collection, dataId, data) {
+            if(!this.__store[collection]) this.__store[collection] = {};
+            this.__store[collection][dataId] = data;
+            localStorage.setItem('app_cache', JSON.stringify(this.__store));
+        },
+        getItem: function(collection, dataId) {
+            if(this.__store[collection] && this.__store[collection][dataId]) {
+                return this.__store[collection][dataId];
+            } else {
+                return null;
+            }
+        },
+        getItems: function(collection, count, page) {
+            if(this.__store[collection]) {
+                var result = [],
+                    counter = 0,
+                    flag = false;
+                if(!count) count = MAX_CLIENTS;
+                if(!page) page = 0;
+                for(var k in this.__store[collection]) {
+                    counter++;
+                    if(counter > (count*page)){
+                        flag = true;
+                        counter = 1;
+                    }
+                    if(flag && counter <= count)
+                        result.push(this.__store[collection][k]);
+                }
+                return result;
+            } else {
+                return null;
+            }
+        },
+        removeItem: function(collection, dataId) {
+            if(this.__store[collection] && this.__store[collection][dataId]) {
+                delete this.__store[collection][dataId];
+            } else {
+                return null;
+            }
+            localStorage.setItem('app_cache', JSON.stringify(this.__store));
+        },
+        init: function() {
+            this.__store = localStorage.getItem('app_cache');
+            if(this.__store) {
+                this.__store = JSON.parse(this.__store);
+            } else {
+                console.warn("Warning: no data in local storage");
+                this.__store = {};
+            }
+        }
+    };
+    //Init cache
+    cache.init();
 
     var api = angular.module('api', ['notify']);
     api.factory('api', ['notification', function (notification) {
         
         //Reusable code
         var errorHandler = function (err) {
-            notification.info(err.message + ' (' + err.statusCode + ')');
+            notification.info(err.error + ' (' + err.error_description + ')');
         };
         
         var sendRequest = function (url, options, resultText, validationText, resultCallback, errorCallback) {
@@ -196,11 +224,18 @@
                     "count": MAX_CLIENTS,
                     "currentPosition":page
                 }
-            }, null, null, callback, errorHandler);
+            }, null, null, function(d){
+                //Refresh data in cache
+                d.clients.forEach(function(val, idx, arr){
+                    cache.setItem('clients', val.client_id, val);
+                });
+                callback(d);
+            }, errorHandler);
+            return cache.getItems('clients', MAX_CLIENTS, page);
         };
         newApi.findClients = function (searchString, callback, page) {
             if(searchString.length === 0) {
-                newApi.getAllClients(callback);
+                return newApi.getAllClients(callback);
             } else {
                 if(!page) page = 0;
                 sendRequest('/api/client/getClients', {
@@ -211,20 +246,39 @@
                         "count": MAX_CLIENTS,
                         "currentPosition": page
                     }
-                }, null, null, callback, errorHandler);
+                }, null, null, function(d){
+                    //Refresh data in cache
+                    d.clients.forEach(function(val, idx, arr){
+                        cache.setItem('clients', val.client_id, val);
+                    });
+                    callback(d);
+                }, errorHandler);
+                var result = [],
+                    composedFio = null;
+                cache.getItems('clients').forEach(function(val, idx, arr){
+                    composedFio = val.lastname+' '+val.firstname+' '+val.patron;
+                    if(composedFio.indexOf(searchString) != -1)
+                        result.push(val);
+                });
+                return result;
             }
         };
         newApi.addClient = function (client, callback, hidden) {
             sendRequest('/api/client/createClient',{
                 data: client
-            }, hidden ? null : "Клиент сохранен в базу", "Неверные данные. Проверьте корректность введенных данных", callback, errorHandler);
+            }, hidden ? null : "Клиент сохранен в базу", "Неверные данные. Проверьте корректность введенных данных", function(r){
+                cache.setItem('clients', r.client_id, client);
+                callback(cache.getItems('clients'));
+            }, errorHandler);
         };
         newApi.updateClient = function (client, callback) {
+            cache.setItem('clients', client.client_id, client);
             sendRequest('/api/client/updateClient', {
                 data:client
             }, "Клиент сохранен в базу", "Неверные данные. Проверьте корректность введенных данных", callback, errorHandler);
         };
         newApi.removeClient = function (client, callback, undoCallback) {
+            cache.removeItem('clients', client.client_id);
             if(undoCallback)
                 sendRequest('/api/client/removeClient', {
                     data: {client_id:client.client_id}
@@ -232,10 +286,12 @@
                     callback();
                     notification.infoWithAction("Клиент успешно удален", "Отмена", undoCallback);
                 }, errorHandler);
-            else
+            else {
                 sendRequest('/api/client/removeClient', {
                     data: {client_id:client.id}
                 }, "Клиент успешно удален", "Невозможно удалить клиента. Обратитесь в службу поддержки", callback, errorHandler);
+            }
+            return cache.getItems('clients');
         };
 
         /*

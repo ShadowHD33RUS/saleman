@@ -2,15 +2,6 @@
 
 app.run(['$rootScope', '$location', 'api', 'notification', function($rootScope, $location, api, notification){
   
-  var checkPermission = function(user, perm) {
-      if(user && user.perms[perm]) {
-          return true;
-      } else {
-          notification.info("У вас недостаточно прав для совершения данного действия");
-          return false;
-      }
-  };
-  
   $rootScope.$on("$routeChangeStart", function(event, next, current) {
     if(!api.isLoggedIn() && (
       (next.templateUrl !== "app/components/login/login.html") &&
@@ -28,15 +19,15 @@ app.run(['$rootScope', '$location', 'api', 'notification', function($rootScope, 
         comp !== 'clients'
         )) {
         notification.info('Ваш аккаунт заблокирован');
-        notification.info('Пожалуйста, оплатите для дальнейшего пользования')
-;        $location.path('/payment');
+        notification.info('Пожалуйста, оплатите для дальнейшего пользования');
+        $location.path('/payment');
       }
     }
   });
 }]);
 
-//Routes
-app.config(['$routeProvider', function($routeProvider/*, api*/){
+
+app.config(['$routeProvider', function($routeProvider){
   $routeProvider
     .when('/login', {
       templateUrl: 'app/components/login/login.html',

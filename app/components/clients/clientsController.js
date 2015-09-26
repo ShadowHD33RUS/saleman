@@ -1,10 +1,18 @@
-app.controller('ClientsController', ['api', '$rootScope', 'modal', function(api, $rootScope, modal){
+app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', function(api, $rootScope, modal, notification){
 	var thisController = this;
 	thisController.loaded = false;
 	thisController.dataLoading = false;
 	thisController.clients = [];
 	thisController.searchString = '';
 	thisController.currentClient = {};
+	thisController.clientModel = new Model({
+		email: ModelConfig.email(false),
+		firstname: ModelConfig.firstName(true),
+		lastname: ModelConfig.lastName(false),
+		patron: ModelConfig.patron(false),
+		phone: ModelConfig.phone(false)
+	});
+	
 
 	this.doSearch = function() {
 		thisController.dataLoading = true;
@@ -29,30 +37,36 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', function(api,
 	};
 
 	this.edit = function(cl) {
-		thisController.currentClient = cl;
+		for(var k in cl) {
+			if(thisController.clientModel[k]) {
+				thisController.clientModel[k].data = cl[k];
+			}
+		}
+		thisController.clientModel.client_id = cl.client_id;
 		jQuery('#clientModal').openModal();
 	};
 	this.save = function() {
-		this.dataLoading = true;
-		if(thisController.currentClient.client_id)
-			api.updateClient(thisController.currentClient, function(){
-				thisController.dataLoading = false;
-			});
-		else
-			api.addClient(thisController.currentClient, function(updated){
-				thisController.clients = updated;
-				thisController.dataLoading = false;
-				$rootScope.$digest();
-			});
+		thisController.clientModel.validate();
+		if(thisController.clientModel.valid) {
+			jQuery('#clientModal').closeModal();
+			this.dataLoading = true;
+			if(thisController.clientModel.client_id)
+				api.updateClient(thisController.clientModel.toJson([]), function(){
+					thisController.dataLoading = false;
+				});
+			else
+				api.addClient(thisController.clientModel.toJson([]), function(updated){
+					thisController.clients = updated;
+					thisController.dataLoading = false;
+					$rootScope.$digest();
+				});
+		} else {
+			notification.info('Исправьте данные');
+		}
 	};
 	this.create = function() {
-		thisController.currentClient = {
-			fisrtname: '',
-			lastname: '',
-			patron: '',
-			email: '',
-			phone: ''
-		};
+		thisController.clientModel.clearData();
+		delete thisController.clientModel.client_id;
 		jQuery('#clientModal').openModal();
 	};
 	this.remove = function(cl) {

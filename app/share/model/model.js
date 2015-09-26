@@ -87,6 +87,14 @@ function Model(opts) {
     });
     return result;
   };
+  this.clearData = function() {
+    jQuery.each(opts, function(k,v){
+      if(v.type === 'string')
+        cl[k].data = '';
+      else if(v.type === 'number')
+        cl[k].data = 0;
+    });
+  };
 }
 
 var ModelConfig = {

@@ -1,48 +1,52 @@
-app.controller('AccountsController', ['api', 'notification', '$rootScope', function(api, notification, $rootScope){
+app.controller('AccountsController', ['api', 'notification', '$rootScope', function (api, notification, $rootScope) {
+    var thisController = this;
     this.currentAccount = {
-            first_name: '',
-            last_name: '',
-            patron: '',
-            email: '',
-            password: ''
-        };
+        first_name: '',
+        last_name: '',
+        patron: '',
+        email: '',
+        password: ''
+    };
     this.perms = {
         scriptReadPermission: false,
         scriptEditPermission: false,
         clientReadPermission: false,
         clientEditPermission: false
     };
+    
     this.searchString = '';
     this.accounts = [];
     this.filteredAccounts = [];
-    
-    this.save = function() {
+
+    this.save = function () {
         toggleEditBox(false);
-        if(this.currentAccount.manager_id) {
-            api.updateAccount(this.currentAccount, function(result){
-                if(result.code !== '1') {
+        if (this.currentAccount.manager_id) {
+            api.updateAccount(this.currentAccount, function (result) {
+                if (result.code !== '1') {
                     toggleEditBox(true);
                 } else {
-                    api.setPermission(thisController.currentAccount.manager_id, thisController.perms, function(){
+                    api.setPermission(thisController.currentAccount.manager_id, thisController.perms, function () {
                         toggleEditBox(true);
                     });
                 }
+            }, function() {
+                toggleEditBox(true);
             });
         } else {
-            api.createAccount(this.currentAccount, function(result){
-                if(result.code !== '1') {
+            api.createAccount(this.currentAccount, function (result) {
+                if (result.code !== '1') {
                     toggleEditBox(true);
                 } else {
-                    api.setPermission(result.account_id, thisController.perms, function(){
+                    api.setPermission(result.account_id, thisController.perms, function () {
                         toggleEditBox(true);
                     });
                 }
             });
         }
-        
+
     };
-    
-    this.createNew = function() {
+
+    this.createNew = function () {
         this.currentAccount = {
             first_name: '',
             last_name: '',
@@ -54,15 +58,15 @@ app.controller('AccountsController', ['api', 'notification', '$rootScope', funct
         toggleEditBox(true);
         //$scope.$apply();
     };
-    
-    this.selectAccount = function(account) {
+
+    this.selectAccount = function (account) {
         toggleEditBox(false);
         this.currentAccount = account;
-        api.getAccount(account.manager_id, function(result){
+        api.getAccount(account.manager_id, function (result) {
             thisController.currentAccount.first_name = result.account.account.firstname;
             thisController.currentAccount.last_name = result.account.account.lastname;
             thisController.currentAccount.patron = result.account.account.patron;
-            for(var i in thisController.perms) {
+            for (var i in thisController.perms) {
                 thisController.perms[i] = result.account.account[i];
             }
             toggleEditBox(true);
@@ -70,22 +74,22 @@ app.controller('AccountsController', ['api', 'notification', '$rootScope', funct
         });
         //$scope.$apply();
     };
-    
-    this.doSearch = function() {
-        this.filteredAccounts = [];
-        jQuery.each(this.accounts, function(k,v){
-            if(v.toLowerCase().email.indexOf(this.searchString.toLowerCase()))
-                this.filteredAccounts.push(v);
+
+    this.doSearch = function () {
+        thisController.filteredAccounts = [];
+        jQuery.each(thisController.accounts, function (k, v) {
+            if (v.email.toLowerCase().indexOf(thisController.searchString.toLowerCase()) !== -1)
+                thisController.filteredAccounts.push(v);
         });
         //$scope.$apply();
     };
-    
-    this.isActive = function(account) {
+
+    this.isActive = function (account) {
         return account === this.currentAccount;
     };
-    
-    var toggleEditBox = function(switchOn) {
-        if(switchOn) {
+
+    var toggleEditBox = function (switchOn) {
+        if (switchOn) {
             jQuery('#editor').find('input').removeAttr('disabled');
             jQuery('#editor').find('label').addClass('active');
         } else {
@@ -95,12 +99,12 @@ app.controller('AccountsController', ['api', 'notification', '$rootScope', funct
     
     //Init
     toggleEditBox(false);
-    var thisController = this;
-    api.findAccounts(0, function(result){
+    thisController.filteredAccounts = api.findAccounts(0, function (result) {
         thisController.accounts = result.managers;
         thisController.filteredAccounts = thisController.accounts;
         $rootScope.$digest();
     });
+    thisController.accounts = thisController.filteredAccounts;
 }]);
 
 /*

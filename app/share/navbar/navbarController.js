@@ -37,7 +37,7 @@
 			//Set current menu item for user
 			thisController.currentMenu = api.getCurrentUser().isAdmin ? menus.admin : menus.manager;
 			item = thisController.currentMenu[0];
-			//$rootScope.$digest();
+			$rootScope.$digest();
 			$location.path("/scripts");
 		});
 		

@@ -95,6 +95,7 @@
                 }
                 if(allGood && resultCallback)
                     resultCallback(res);
+                else if(!allGood && errorCallback) errorCallback(res.code, res.message);
             };
             options.error = function () {
                 if(errorCallback) {
@@ -270,6 +271,8 @@
             sendRequest('/api/client/createClient',{
                 data: client
             }, hidden ? null : "Клиент сохранен в базу", "Неверные данные. Проверьте корректность введенных данных", function(r){
+                client.creator = {email: currentUser.email};
+                client.client_id = r.client_id;
                 cache.setItem('clients', r.client_id, client);
                 callback(cache.getItems('clients'));
             }, errorHandler);
@@ -319,7 +322,7 @@
                 cached = cache.getItems('scripts', MAX_CLIENTS, page);
             if(cached)
                 cached.forEach(function(val, idx, arr) {
-                    if(val.script_name.indexOf(searchString) != -1) {
+                    if((val.script_name || val.name).toLowerCase().indexOf(searchString.toLowerCase()) != -1) {
                         result.push(val);
                     }
                 });
@@ -341,6 +344,7 @@
                     json_string: script.data
                 }
             }, "Скрипт успешно создан", "Не удалось создать скрипт. Обратитесь в службу поддержки", function(res) {
+                script.script_id = res.script_id;
                 cache.setItem('scripts', res.script_id, script);
                 callback(res);
             }, errorHandler);
@@ -374,6 +378,10 @@
                 callback, errorHandler);
             }
         };
+        
+        /*
+         Tech support API section
+         */
 
         newApi.sendTechSupport = function(message, callback){
             sendRequest('/api/support/support', {
@@ -383,24 +391,44 @@
             }, "Ваш вопрос будет обработан в ближайшее время", null, callback, errorHandler);
         };
 
+        /*
+         Accounts API section
+         */
+        
+        function mapToAccount(raw) {
+            var result = {
+                first_name: raw.first_name,
+                last_name: raw.last_name,
+                patron: raw.patron,
+                email: raw.email,
+            };
+            if(raw.password && raw.password.length > 0) result.password = raw.password;
+            if(raw.manager_id) result.account_id = raw.manager_id;
+            return result;
+        }
+
         newApi.createAccount = function(account, callback) {
-            sendRequest('/api/account/createAccount', {data:account},
+            sendRequest('/api/account/createAccount', {data:mapToAccount(account)},
                 'Аккаунт успешно создан',
                 'Неверные данные',
-                callback,
+                function(data){
+                    cache.setItem('accounts', data.account_id, account);
+                    callback(data);
+                },
                 errorHandler
             );
         };
-        newApi.updateAccount = function(account, callback) {
-            account.account_id = account.account_id || account.manager_id || account.id;
-            sendRequest('/api/account/updateAccount', {data:account},
+        newApi.updateAccount = function(account, callback, errorCallback) {
+            cache.setItem('accounts', account.account_id, account);
+            sendRequest('/api/account/updateAccount', {data:mapToAccount(account)},
                 'Аккаунт успешно обновлен',
                 'Неверные данные',
                 callback,
-                errorHandler
+                errorCallback
             );
         };
         newApi.removeAccount = function(id, callback) {
+            cache.removeItem('accounts', id);
             sendRequest('/api/account/removeAccount', {data:{account_id:id}},
                 'Аккаунт успешно обновлен',
                 'Неверные данные',
@@ -414,7 +442,13 @@
                     currentPosition: page && page >= 0 ? page : 0,
                     count: MAX_CLIENTS
                 }
-            }, null, null, callback, errorHandler);
+            }, null, null, function(data) {
+                data.managers.forEach(function(val, idx, arr){
+                    cache.setItem('accounts', val.manager_id, val);
+                });
+                callback(data);
+            }, errorHandler);
+            return cache.getItems('accounts');
         };
         newApi.getAccount = function(id, callback) {
             sendRequest('/api/account/findById', {data:{account_id: id}},

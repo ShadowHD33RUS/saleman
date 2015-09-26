@@ -37,17 +37,16 @@
                         <tr>
                             <th>Название скрипта</th>
                             <th>Создатель</th>
+                            <th>Действия</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="script in scriptsCtrl.scripts" view-dropdown>
                             <td>{{script.script_name}}</td>
                             <td>{{script.creator.email}}</td>
-                            <td>
-                                <a href="#/scriptrun/{{script.script_id}}" class="btn-flat">Выполнить</a>
-                                <a href="#/scripttree/{{script.script_id}}" class="btn-flat">Редактировать</a>
-                                <a class="delete-icon" href="" ng-click="scriptsCtrl.preDelete(script.script_id)"><i class="material-icons">clear</i></a>
-                            </td>
+                            <td><a href="#/scriptrun/{{script.script_id}}">Выполнить</a></td>
+                            <td><a href="#/scripttree/{{script.script_id}}">Редактировать</a></td>
+                            <td><a class="delete-icon" href="" ng-click="scriptsCtrl.preDelete(script.script_id)">Удалить</a></td>
                         </tr>
                     </tbody>
                 </table>

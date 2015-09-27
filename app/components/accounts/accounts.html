@@ -6,31 +6,51 @@
             <div class="row">
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="last_name" ng-model="accountsCtrl.currentAccount.last_name" length="80">
-                        <label for="last_name">Фамилия</label>
+                        <input type="text" id="last_name"
+                        ng-model="accountsCtrl.model.last_name.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.last_name.valid]"
+                        ng-blur="accountsCtrl.model.validate()"
+                        >
+                        <label data-error="{{accountsCtrl.model.last_name.msg}}" for="last_name">Фамилия</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="first_name" ng-model="accountsCtrl.currentAccount.first_name" length="80">
-                        <label for="first_name">Имя</label>
+                        <input type="text" id="first_name"
+                        ng-model="accountsCtrl.model.first_name.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.first_name.valid]"
+                        ng-blur="accountsCtrl.model.validate()"
+                        >
+                        <label data-error="{{accountsCtrl.model.first_name.msg}}" for="first_name">Имя</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="patron" ng-model="accountsCtrl.currentAccount.patron" length="80">
-                        <label for="patron">Отчество</label>
+                        <input type="text" id="patron"
+                        ng-model="accountsCtrl.model.patron.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.patron.valid]"
+                        ng-blur="accountsCtrl.model.validate()"
+                        >
+                        <label data-error="{{accountsCtrl.model.patron.msg}}" for="patron">Отчество</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="email" ng-model="accountsCtrl.currentAccount.email" length="120" required>
-                        <label for="email">E-mail</label>
+                        <input type="text" id="email"
+                        ng-model="accountsCtrl.model.email.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.email.valid]"
+                        ng-blur="accountsCtrl.model.validate()"
+                        >
+                        <label data-error="{{accountsCtrl.model.email.msg}}" for="email">E-mail</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="password" ng-model="accountsCtrl.currentAccount.password" required>
+                        <input type="text" id="password"
+                        ng-model="accountsCtrl.model.password.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.password.valid]"
+                        ng-bl
+                        >
                         <label for="password">Пароль (оставить пустым, если не хотите менять)</label>
                     </div>
                 </div>

@@ -58,6 +58,10 @@
                 console.warn("Warning: no data in local storage");
                 this.__store = {};
             }
+        },
+        clear: function() {
+            this.__store = {};
+            localStorage.clear();
         }
     };
     //Init cache
@@ -191,7 +195,7 @@
             currentUser = null;
             clearTimeout(refreshTokenTimerHandler);
             notification.info("Вы вышли из приложения");
-            cache.removeItem('tokens', 'refresh');
+            cache.clear();
             callback();
         };
         newApi.isLoggedIn = function () {

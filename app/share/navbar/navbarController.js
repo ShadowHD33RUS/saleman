@@ -2,20 +2,20 @@
 
 	var menus = {
 		'manager': [
-			{ name: 'Скрипты', location: '#/scripts' },
-			{ name: 'База клиентов', location: '#/clients' },
-			{ name: 'Задачи', location: '#/notready' },
-			{ name: 'Тех. поддержка', location: '#/support' },
-			{ name: 'Импорт', location: '#/convert' }
+			{ name: 'Скрипты', location: '#/scripts', showBlocked: false },
+			{ name: 'База клиентов', location: '#/clients', showBlocked: false },
+			{ name: 'Задачи', location: '#/notready', showBlocked: false },
+			{ name: 'Тех. поддержка', location: '#/support', showBlocked: true },
+			{ name: 'Импорт', location: '#/convert', showBlocked: false }
 		],
 		'admin': [
-			{ name: 'Скрипты', location: '#/scripts' },
-			{ name: 'База клиентов', location: '#/clients' },
-			{ name: 'Задачи', location: '#/notready' },
-			{ name: 'Тех. поддержка', location: '#/support' },
-			{ name: 'Статистика', location: '#/notready' },
-			{ name: 'Импорт', location: '#/convert' },
-			{ name: 'Аккаунты', location: '#/accounts' }
+			{ name: 'Скрипты', location: '#/scripts', showBlocked: false },
+			{ name: 'База клиентов', location: '#/clients', showBlocked: false },
+			{ name: 'Задачи', location: '#/notready', showBlocked: false },
+			{ name: 'Тех. поддержка', location: '#/support', showBlocked: true },
+			{ name: 'Статистика', location: '#/notready', showBlocked: false },
+			{ name: 'Импорт', location: '#/convert', showBlocked: false },
+			{ name: 'Аккаунты', location: '#/accounts', showBlocked: true }
 		],
 		'system-admin': [
 			{ name: 'Цены', location: '/#/home' },
@@ -34,9 +34,34 @@
 		$rootScope.$on('authChange', function () {
 			thisController.loggedIn = api.isLoggedIn();
 			thisController.username = thisController.loggedIn ? api.getCurrentUser().getFullName() : '';
+			
 			//Set current menu item for user
 			thisController.currentMenu = api.getCurrentUser().isAdmin ? menus.admin : menus.manager;
-			item = thisController.currentMenu[0];
+			if(api.getCurrentUser().blocked) {
+				for(var k = 0; k < thisController.currentMenu.length; k++) {
+					if(thisController.currentMenu[k].showBlocked !== undefined && thisController.currentMenu[k] === false)
+						thisController.currentMenu.splice(k,1);
+				}
+			}
+			
+			//Current selection in navbar menu is managed by location
+			var currentPath = $location.path();
+			if(currentPath.indexOf('login') !== -1) {
+				$location.path('/scripts');
+				item = thisController.currentMenu[0];
+			} else {
+				for(var k = 0; k < thisController.currentMenu.length; k++) {
+					if(thisController.currentMenu[k].location.indexOf(currentPath) !== -1) {
+						item = thisController.currentMenu[k];
+						break;
+					}
+				}
+				if(item === null) {
+					$location.path('/scripts');
+					item = thisController.currentMenu[0];
+				}
+			}
+			
 			$rootScope.$digest();
 			$location.path("/scripts");
 		});
@@ -46,6 +71,7 @@
 		this.logout = function () {
 			api.logout(function (params) {
 				notification.info('Вы вышли из приложения');
+				item = null;
 				$rootScope.$broadcast('authChange', {});
 			});
 		};

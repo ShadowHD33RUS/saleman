@@ -1,3 +1,7 @@
+/*
+  LEARN HOW TO USE COMPOSERS AND COMPRESSORS FOR JAVASCRIPT
+*/
+
 var app = angular.module('saleman', ['ngRoute', 'api', 'notify']);
 
 app.directive('viewDropdown', function () {

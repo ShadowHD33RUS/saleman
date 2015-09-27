@@ -95,6 +95,13 @@ function Model(opts) {
         cl[k].data = 0;
     });
   };
+  this.populate = function(genericObject) {
+    for(var k in opts) {
+      if(genericObject[k] && (typeof genericObject[k]).toLowerCase() === opts[k].type) {
+        cl[k].data = genericObject[k];
+      }
+    }
+  };
 }
 
 var ModelConfig = {

@@ -1129,7 +1129,9 @@ jsonObj.quickLink = val.getQuickLink();
             options.dataType = 'json';
             options.contentType = 'application/json';
             if(options.data && options.data.json_string) {
-                options.data.json_string = JSON.stringify(options.data.json_string).replace(/"/g, '\"');
+                //Cipher all new scripts and updates
+                console.log('Encrypting script...');
+                options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.cipherKey).toString();
             }
             options.data = JSON.stringify(options.data);
             if (!options.method) options.method = "POST";
@@ -1202,6 +1204,8 @@ jsonObj.quickLink = val.getQuickLink();
                             currentUser.isAdmin = result.account.admin;
                             currentUser.blocked = result.company.blocked;
                             currentUser.nextPayment = result.account.next_payment;
+                            var key = CryptoJS.enc.Utf8.parse(currentUser.email+currentUser.getFullName());
+                            currentUser.cipherKey = CryptoJS.enc.Base64.stringify(key);
                             if(callback) callback(result);
                         }, errorHandler);
                     } else {
@@ -1357,7 +1361,13 @@ jsonObj.quickLink = val.getQuickLink();
                 data: {script_id: id}
             }, null, "Невозможно получить скрипт. Пожалуйста, обратитесь в службу поддержки", 
             function(result) {
-                result.script.script.json_string = result.script.script.json_string.replace(/\"/,'"');
+                if(result.script.script.json_string.charAt(0) === '[') {
+                    console.log('Using old plain style for script...');
+                    result.script.script.json_string = result.script.script.json_string.replace(/\"/,'"');
+                } else {
+                    console.log('Decrypting script...');
+                    result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.cipherKey).toString(CryptoJS.enc.Utf8);
+                }
                 callback(result.script);
             }, errorHandler);
         };

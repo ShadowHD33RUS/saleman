@@ -107,13 +107,14 @@ app.config(['$routeProvider', function($routeProvider){
     });
 }]);;app.controller('AccountsController', ['api', 'notification', '$rootScope', function (api, notification, $rootScope) {
     var thisController = this;
-    this.currentAccount = {
-        first_name: '',
-        last_name: '',
-        patron: '',
-        email: '',
-        password: ''
-    };
+    this.model = new Model({
+        account_id: {type: 'number'},
+        first_name: ModelConfig.firstName(true),
+        last_name: ModelConfig.lastName(false),
+        patron: ModelConfig.patron(false),
+        email: ModelConfig.email(true),
+        password: ModelConfig.password(false)
+    });
     this.perms = {
         scriptReadPermission: false,
         scriptEditPermission: false,
@@ -127,12 +128,12 @@ app.config(['$routeProvider', function($routeProvider){
 
     this.save = function () {
         toggleEditBox(false);
-        if (this.currentAccount.manager_id) {
-            api.updateAccount(this.currentAccount, function (result) {
+        if (this.model.manager_id) {
+            api.updateAccount(this.model.toJson(), function (result) {
                 if (result.code !== '1') {
                     toggleEditBox(true);
                 } else {
-                    api.setPermission(thisController.currentAccount.manager_id, thisController.perms, function () {
+                    api.setPermission(thisController.model.manager_id, thisController.perms, function () {
                         toggleEditBox(true);
                     });
                 }
@@ -140,7 +141,7 @@ app.config(['$routeProvider', function($routeProvider){
                 toggleEditBox(true);
             });
         } else {
-            api.createAccount(this.currentAccount, function (result) {
+            api.createAccount(this.model.toJson(), function (result) {
                 if (result.code !== '1') {
                     toggleEditBox(true);
                 } else {
@@ -154,13 +155,7 @@ app.config(['$routeProvider', function($routeProvider){
     };
 
     this.createNew = function () {
-        this.currentAccount = {
-            first_name: '',
-            last_name: '',
-            patron: '',
-            email: '',
-            password: ''
-        };
+        this.model.clearData();
         jQuery('#editor').find('label').removeClass('active');
         toggleEditBox(true);
         //$scope.$apply();
@@ -168,11 +163,10 @@ app.config(['$routeProvider', function($routeProvider){
 
     this.selectAccount = function (account) {
         toggleEditBox(false);
-        this.currentAccount = account;
+        this.model.manager_id = account.manager_id;
+        this.model.populate(account);
         api.getAccount(account.manager_id, function (result) {
-            thisController.currentAccount.first_name = result.account.account.firstname;
-            thisController.currentAccount.last_name = result.account.account.lastname;
-            thisController.currentAccount.patron = result.account.account.patron;
+            thisController.model.populate(result.account.account);
             for (var i in thisController.perms) {
                 thisController.perms[i] = result.account.account[i];
             }
@@ -199,8 +193,10 @@ app.config(['$routeProvider', function($routeProvider){
         if (switchOn) {
             jQuery('#editor').find('input').removeAttr('disabled');
             jQuery('#editor').find('label').addClass('active');
+            jQuery('#editor').find('a.btn').removeClass('disabled');
         } else {
             jQuery('#editor').find('input').attr('disabled', 'true');
+            jQuery('#editor').find('a.btn').addClass('disabled');
         }
     };
     
@@ -1022,15 +1018,7 @@ jsonObj.quickLink = val.getQuickLink();
     this.send = function() {
         api.sendTechSupport("Пользователь "+api.getCurrentUser().email+" ("+api.getCurrentUser().getFullName()+") прислал письмо в тех. поддержку.\nEmail: "+this.email+"\nТема: "+this.topic+"\nСообщение: "+this.message);
     };
-}]);;/*
-	This is just big kostyl because basket.js doesn't suit for me - I have
-	js files in different origins.
-*/
-
-var scriptCache = {};
-(function(){
-	
-})();;(function () {
+}]);;(function () {
     
     //Constants
     var MAX_CLIENTS = 30;
@@ -1090,6 +1078,10 @@ var scriptCache = {};
                 console.warn("Warning: no data in local storage");
                 this.__store = {};
             }
+        },
+        clear: function() {
+            this.__store = {};
+            localStorage.clear();
         }
     };
     //Init cache
@@ -1223,7 +1215,7 @@ var scriptCache = {};
             currentUser = null;
             clearTimeout(refreshTokenTimerHandler);
             notification.info("Вы вышли из приложения");
-            cache.removeItem('tokens', 'refresh');
+            cache.clear();
             callback();
         };
         newApi.isLoggedIn = function () {
@@ -1599,6 +1591,13 @@ function Model(opts) {
         cl[k].data = 0;
     });
   };
+  this.populate = function(genericObject) {
+    for(var k in opts) {
+      if(genericObject[k] && (typeof genericObject[k]).toLowerCase() === opts[k].type) {
+        cl[k].data = genericObject[k];
+      }
+    }
+  };
 }
 
 var ModelConfig = {
@@ -1617,20 +1616,20 @@ var ModelConfig = {
 
 	var menus = {
 		'manager': [
-			{ name: 'Скрипты', location: '#/scripts' },
-			{ name: 'База клиентов', location: '#/clients' },
-			{ name: 'Задачи', location: '#/notready' },
-			{ name: 'Тех. поддержка', location: '#/support' },
-			{ name: 'Импорт', location: '#/convert' }
+			{ name: 'Скрипты', location: '#/scripts', showBlocked: false },
+			{ name: 'База клиентов', location: '#/clients', showBlocked: false },
+			{ name: 'Задачи', location: '#/notready', showBlocked: false },
+			{ name: 'Тех. поддержка', location: '#/support', showBlocked: true },
+			{ name: 'Импорт', location: '#/convert', showBlocked: false }
 		],
 		'admin': [
-			{ name: 'Скрипты', location: '#/scripts' },
-			{ name: 'База клиентов', location: '#/clients' },
-			{ name: 'Задачи', location: '#/notready' },
-			{ name: 'Тех. поддержка', location: '#/support' },
-			{ name: 'Статистика', location: '#/notready' },
-			{ name: 'Импорт', location: '#/convert' },
-			{ name: 'Аккаунты', location: '#/accounts' }
+			{ name: 'Скрипты', location: '#/scripts', showBlocked: false },
+			{ name: 'База клиентов', location: '#/clients', showBlocked: false },
+			{ name: 'Задачи', location: '#/notready', showBlocked: false },
+			{ name: 'Тех. поддержка', location: '#/support', showBlocked: true },
+			{ name: 'Статистика', location: '#/notready', showBlocked: false },
+			{ name: 'Импорт', location: '#/convert', showBlocked: false },
+			{ name: 'Аккаунты', location: '#/accounts', showBlocked: true }
 		],
 		'system-admin': [
 			{ name: 'Цены', location: '/#/home' },
@@ -1649,10 +1648,34 @@ var ModelConfig = {
 		$rootScope.$on('authChange', function () {
 			thisController.loggedIn = api.isLoggedIn();
 			thisController.username = thisController.loggedIn ? api.getCurrentUser().getFullName() : '';
+			
 			//Set current menu item for user
 			thisController.currentMenu = api.getCurrentUser().isAdmin ? menus.admin : menus.manager;
-			//TODO: Refactor this to be managed by location
-			item = thisController.currentMenu[0];
+			if(api.getCurrentUser().blocked) {
+				for(var k = 0; k < thisController.currentMenu.length; k++) {
+					if(thisController.currentMenu[k].showBlocked !== undefined && thisController.currentMenu[k] === false)
+						thisController.currentMenu.splice(k,1);
+				}
+			}
+			
+			//Current selection in navbar menu is managed by location
+			var currentPath = $location.path();
+			if(currentPath.indexOf('login') !== -1) {
+				$location.path('/scripts');
+				item = thisController.currentMenu[0];
+			} else {
+				for(var k = 0; k < thisController.currentMenu.length; k++) {
+					if(thisController.currentMenu[k].location.indexOf(currentPath) !== -1) {
+						item = thisController.currentMenu[k];
+						break;
+					}
+				}
+				if(item === null) {
+					$location.path('/scripts');
+					item = thisController.currentMenu[0];
+				}
+			}
+			
 			$rootScope.$digest();
 			$location.path("/scripts");
 		});
@@ -1662,6 +1685,7 @@ var ModelConfig = {
 		this.logout = function () {
 			api.logout(function (params) {
 				notification.info('Вы вышли из приложения');
+				item = null;
 				$rootScope.$broadcast('authChange', {});
 			});
 		};

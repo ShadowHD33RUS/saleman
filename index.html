@@ -62,6 +62,8 @@
   <script src="assets/js/angular-route.min.js" charset="utf-8"></script>
   <script type="text/javascript" src="assets/js/fabric.min.js"></script>
   <script src="assets/js/treelib.js" charset="utf-8"></script>
+  <script type="text/javascript" src="assets/js/aes.js"></script>
+  <script type="text/javascript" src="assets/js/enc-base64-min.js"></script>
 
   <!-- General modules -->
   <script src="app/app.module.js" charset="utf-8"></script>
@@ -82,6 +84,7 @@
   <script src="app/components/convert/convertController.js" charset="utf-8"></script>
   <script src="app/components/accounts/accountsController.js" charset="utf-8"></script>
   <script src="app/components/recover/recoverController.js" charset="utf-8"></script>
+  
   <script type="text/javascript">
     function loadApplication() {
       angular.bootstrap(document.body, ['saleman']);
@@ -131,6 +134,10 @@
                   currentUser.isAdmin = data.account.admin;
                   currentUser.blocked = data.company.blocked;
                   currentUser.nextPayment = data.account.next_payment;
+                  //calculate cipher key
+                  var key = CryptoJS.enc.Utf8.parse(currentUser.email+currentUser.getFullName());
+                  currentUser.cipherKey = CryptoJS.enc.Base64.stringify(key);
+                  
                   angular.currentUser = currentUser;
                   loadApplication();
                 },

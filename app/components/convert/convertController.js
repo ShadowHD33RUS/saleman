@@ -19,7 +19,7 @@ app.controller('ConvertController', ['api', 'notification', function(api, notifi
                 data: [],
                 cache: {},
                 answers: [],
-                name: jQuery('#oldFile').parent().parent().find('input[type="text"]').val()
+                name: jQuery('#oldFile').parent().parent().find('input[type="text"]').val().substr(0, 20)
             };
             reader.onload = function() {
                 var xmlDoc = jQuery.parseXML(reader.result);

@@ -116,3 +116,25 @@ var ModelConfig = {
   phone: function(req) {return {type: 'string', regexp: /(\+7|7|8){0,1}[ -]?\d{3}[ -]?\d{3}[ -]?\d{2}[ -]?\d{2}/, required: req, err: 'Пример: 8 900 123 34 45'}; },
   website: function(req) {return {type: 'string', min:3, required: req}; }
 };
+
+var Models = {
+  client: function(overrideOpts) {
+    var result = {
+      firstname: ModelConfig.firstName(true),
+      lastname: ModelConfig.lastName(false),
+      patron: ModelConfig.patron(false),
+      phone: ModelConfig.phone(false),
+      email: ModelConfig.email(false),
+    };
+    overrideLogic(result, overrideOpts);
+    return result;
+  }
+};
+
+function overrideLogic(src, opts) {
+  for(var k in src) {
+    if(opts[k] && typeof opts[k] === 'Object') {
+      src[k] = opts[k];
+    }
+  }
+}

@@ -2,7 +2,11 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 	this.ready = false;
 	this.nodes = {}; //Index of nodes
 	this.isLoading = true;
-
+	
+	var history = {
+		current: 0,
+		data: []
+	};
 	var clientModel = new Model(Models.client({}));
 
 	this.manager = {
@@ -14,6 +18,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 		address: ''
 	};
 	this.step = {
+		questionId: -1,
 		question: "Загрузка...",
 		answers: []
 	};
@@ -63,6 +68,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 				return txt;
 		},
 		populateStep = function (nodeId) {
+			thisObj.step.questionId = nodeId;
 			thisObj.step.question = parseQuestion(thisObj.nodes[nodeId].text);
 			thisObj.step.answers = [];
 			jQuery.each(thisObj.nodes[nodeId].linksTo, function (k, v) {
@@ -89,23 +95,67 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 			if (val.quickLink) thisObj.quickLinks.push(val);
 		});
 		populateStep(entry);
+		history.data.push(copyObj(thisObj.step));
+		history.current = history.data.length-1;
 		thisObj.isLoading = false;
 		$rootScope.$digest();
 	});
 
 	this.selectAnswer = function (answer) {
+		//Remove history about future
+		if(this.hasNext()) {
+			history.data.splice(history.current+1,history.data.length-history.current-1);
+		}
+		history.current = history.data.length-1;
 		if (answer.next) {
 			populateStep(answer.next);
 			if (this.step.answers.length === 0) {
+				//If there is no answers
 				this.step.answers = [{ text: 'Завершить выполнение скрипта' }];
 			}
+			history.data.push(copyObj(this.step));
+			history.current = history.data.length-1;
 		} else {
+			//Script's run finished
 			this.step.question = 'Выполнение скрипта завершено';
 			this.step.answers = [];
+			history.current++;
 		}
 	};
+	
+	
+	this.hasNext = function() {
+		if(history.data.length > (history.current+1)) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+	this.hasPrev = function() {
+		if(history.data[history.current-1]) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+	
+	this.next = function() {
+		if(this.hasNext()) {
+			var ans = history.data[++history.current];
+			populateStep(ans.questionId);
+		}
+	};
+	this.prev = function() {
+		if(this.hasPrev()) {
+			var ans = history.data[--history.current];
+			populateStep(ans.questionId);
+		}
+	};
+	
 	this.setQuickLink = function (lnkId) {
 		populateStep(findFirstNotNullElement(this.nodes[lnkId].linksTo));
+		history.data.push(copyObj(this.step));
+		history.current = history.data.length-1;
 	};
 	this.saveClient = function () {
 		var words = this.client.name.trim().split(" ");
@@ -132,5 +182,13 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 		} else {
 			notification.info('Данные в форме неверны');
 		}
+	};
+	
+	var copyObj = function(obj) {
+		var result = {};
+		for(var k in obj) {
+			result[k] = obj[k];
+		}
+		return result;
 	};
 }]);

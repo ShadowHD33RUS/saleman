@@ -80,7 +80,17 @@ app.config(['$routeProvider', function($routeProvider){
       controllerAs: 'recoverCtrl'
     })
     .when('/notready', {
-      templateUrl: 'app/components/notready/notready.html',
+      templateUrl: 'app/components/notready/notready.html'
+    })
+    .when('/scripttextedit/:id', {
+      templateUrl: 'app/components/script_texteditor/script_texteditor.html',
+      controller: 'ScriptTextEditorController',
+      controllerAs: 'scriptEditCtrl'
+    })
+    .when('/scripttextedit/:id/:nodeId', {
+      templateUrl: 'app/components/script_texteditor/script_texteditor.html',
+      controller: 'ScriptTextEditorController',
+      controllerAs: 'scriptEditCtrl'
     })
     .otherwise({
       redirectTo: '/login'

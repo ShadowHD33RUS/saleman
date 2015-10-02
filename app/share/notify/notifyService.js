@@ -12,6 +12,7 @@
     //Variables
     
     var notificationId = 0;
+    var currentlyDisplayedToasts = {};
     
     //Reusable private code
     
@@ -48,10 +49,15 @@
     module.factory('notification', function () {
         var notification = {
             info: function(text) {
-                Materialize.toast(text, notificationTimer);
+                if(!currentlyDisplayedToasts[text]) {
+                    currentlyDisplayedToasts[text] = true;
+                    Materialize.toast(text, notificationTimer, '', function(){
+                        delete currentlyDisplayedToasts[text];
+                    });
+                }
             },
             infoWithAction: function(bodyText, actionText, actionCallback) {
-                var closeFunc = Materialize.toast('<span>'+bodyText+'</span><a class="btn-flat yellow-text" id="not'+notificationId+'">'+actionText+'<a>', notificationTimer);
+                var closeFunc = Materialize.toast('<span>'+bodyText+'</span><a class="btn-flat yellow-text" id="not'+notificationId+'">'+actionText+'</a>', notificationTimer);
                 jQuery('#not'+notificationId++).click(function(){
                     actionCallback();
                     closeFunc();

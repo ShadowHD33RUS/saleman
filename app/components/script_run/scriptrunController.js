@@ -110,7 +110,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 		if (answer.next) {
 			populateStep(answer.next);
 			if (this.step.answers.length === 0) {
-				//If there is no answers
+				//If there are no answers
 				this.step.answers = [{ text: 'Завершить выполнение скрипта' }];
 			}
 			history.data.push(copyObj(this.step));

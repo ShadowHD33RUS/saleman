@@ -1,0 +1,102 @@
+<div class="row">
+	<div class="col s12 center-align">
+		<h3>Редактирование скрипта: </h3>
+	</div>
+</div>
+<div class="row" ng-show="scriptEditCtrl.isLoading">
+	<div class="progress">
+		<div class="indeterminate"></div>
+	</div>
+</div>
+<div class="row" ng-hide="scriptEditCtrl.isLoading">
+	<div class="col m10 s12" style="border-right: 3px solid #ececec" id="scriptrun-area">
+		<div class="row">
+			<div class="card-panel">
+				<button data-position="top" data-delay="300" data-tooltip="Перейти назад" ng-click="scriptEditCtrl.prev()" ng-class="{true: 'btn btn-flat', false: 'btn btn-flat disabled'}[scriptEditCtrl.hasPrev()]"><i class="material-icons">skip_previous</i></button>
+				<button data-position="top" data-delay="300" data-tooltip="Перейти вперед" ng-click="scriptEditCtrl.next()" ng-class="{true: 'btn btn-flat', false: 'btn btn-flat disabled'}[scriptEditCtrl.hasNext()]"><i class="material-icons">skip_next</i></button>
+				<button ng-click="scriptEditCtrl.addAnswer()" class="btn waves-effect waves-light">Добавить вариант ответа</button>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s12">
+				<div class="input-field">
+					<textarea class="materialize-textarea" id="question" ng-model="scriptEditCtrl.step.question"></textarea>
+					<label class="active" for="question">Текст менеджера</label>
+				</div>
+			</div>
+			<div class="col s12">
+				<table>
+					<tr ng-repeat="ans in scriptEditCtrl.step.answers">
+						<td>
+							<div class="input-field">
+								<input ng-model="ans.text" type="text" class="validate" id="answer_{{ans.id}}" required />
+								<label class="active" for="answer_{{ans.id}}">Вариант ответа клиента {{ans.id}}</label>
+							</div>
+						</td>
+						<td style="width:236px">
+							<a data-position="top" data-delay="300" data-tooltip="Нажмите" class='dropdown-button btn' href='' data-activates='dropdown_{{ans.id}}'>Действия</a>
+							<ul id='dropdown_{{ans.id}}' class='dropdown-content'>
+								<li><a href="" ng-click="scriptEditCtrl.toggleQuick(ans)">{{scriptEditCtrl.quick(ans)}}</a></li>
+								<li class="divider"></li>
+								<li ng-hide="scriptEditCtrl.canCreateNew(ans)"><a href="" ng-click="scriptEditCtrl.newQuestion(ans)">Создать новый вопрос</a></li>
+								<li><a href="" ng-click="scriptEditCtrl.editAnswer(ans)">Редактировать</a></li>
+								<li><a href="" ng-click="scriptEditCtrl.removeAnswer(ans)">Удалить</a></li>
+							</ul>
+							<button data-position="top" data-delay="300" data-tooltip="Следующий узел" ng-click="scriptEditCtrl.selectAnswer(ans)" class="btn waves-effect waves-light"><i class="large material-icons">input</i></button>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div class="col m2 s12">
+		<div class="row">
+			<div class="col s12">
+				<h5>Быстрые ссылки</h5>
+				<div class="collection">
+					<a data-position="left" data-delay="300" data-tooltip="Перейти по быстрой ссылке" class="collection-item" ng-repeat="lnk in scriptEditCtrl.quickLinks" href="" ng-click="scriptEditCtrl.setQuickLink(lnk.id)">{{lnk.text}}</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="modal" class="modal">
+	<div class="modal-content">
+		<h4 id="modalTitle">Добавить ответ</h4>
+		<div class="row">
+			<div class="col s12">
+				<div class="input-field">
+					<input type="text" ng-model="scriptEditCtrl.newAnswer.text" id="newAnswer">
+					<label for="newAnswer">Текст ответа клиента</label>
+				</div>
+			</div>
+			<div class="col s12">
+				<span>Выберите ответ менеджера, с которым надо соединить (необязательно)</span>
+				<div class="row">
+					<div class="col s10">
+						<div class="input-field">
+							<input type="text" id="search" ng-model="scriptEditCtrl.newAnswer.search" ng-change="scriptEditCtrl.doSearch()">
+							<label for="search">Фильтр</label>
+						</div>
+					</div>
+					<div class="col s2">
+						<div class="input-field">
+							<div class="btn-flat" style="padding:0" ng-click="scriptEditCtrl.doSearch()">
+								<i class="material-icons" style="font-size:36px">search</i>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col s12">
+				<div class="collection" ng-repeat="q in scriptEditCtrl.newAnswer.filtered">
+					<a href="" ng-click="scriptEditCtrl.selectQuestion(q.id)" ng-class="{true:'collection-item active', false:'collection-item'}[scriptEditCtrl.questionActive(q)]">{{q.text | limitTo:30}}</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<a ng-click="scriptEditCtrl.confirmAddAnswer()" href="" class="waves-effect waves-green btn-flat">OK</a>
+		<a href="" class="modal-action modal-close waves-effect waves-green btn-flat">Закрыть</a>
+	</div>
+</div>

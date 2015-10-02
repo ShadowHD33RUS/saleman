@@ -56,10 +56,6 @@
 						break;
 					}
 				}
-				if(item === null) {
-					$location.path('/scripts');
-					item = thisController.currentMenu[0];
-				}
 			}
 			
 			$rootScope.$digest();

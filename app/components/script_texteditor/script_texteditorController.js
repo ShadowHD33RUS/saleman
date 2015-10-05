@@ -1,4 +1,4 @@
-app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', '$scope', function (api, $rootScope, $routeParams, notification, modal, $scope) {
+app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', '$scope', '$location', function (api, $rootScope, $routeParams, notification, modal, $scope, $location) {
 	
 	//Public variables
 	
@@ -9,6 +9,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 		question: '',
 		answers: []
 	};
+	this.scriptId = -1;
 	
 	this.newAnswer = {
 		id: -1,
@@ -24,6 +25,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 			this.id = -1;
 		}
 	};
+	this.scriptName = '123';
 	
 	//Private variables and functions
 	
@@ -139,7 +141,32 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 		}
 		this.newAnswer.filtered = a;
 	};
-	
+	this.saveScript = function(callback) {
+		var result = {
+			data: [],
+			name: ''
+		};
+		jQuery.each(script.nodes, function(idx, val) {
+			result.data.push(val);
+		});
+		result.name = this.scriptName	;
+		if(thisObj.scriptId) {
+			result.id = thisObj.scriptId;
+			api.updateScript(result, function(){
+				callback(result.id);
+			});
+		} else {
+			api.addScript(result, function(res){
+				callback(res.script_id);
+			});
+		}
+	};
+	this.switchToTree = function() {
+		this.saveScript(function(id){
+			$location.path('/scripttree/'+id);
+			$rootScope.$digest();
+		});
+	};
 	this.removeAnswer = function(answer) {
 		delete script.nodes[answer.id];
 		saleman_misc.removeElement(answer.id, script.nodes[this.step.questionId].linksTo);
@@ -241,6 +268,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 	
 	//Initialization code
 	var scriptId = $routeParams.id ? 1 * $routeParams.id : false;
+	this.scriptId = scriptId ? scriptId : -1;
 	var nodeId = $routeParams.nodeId ? 1 * $routeParams.nodeId : false;
 	var thisObj = this;
 	if(scriptId) {
@@ -248,6 +276,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 		api.findScriptById(scriptId, function (fetchedScript) {
 			fetchedScript.data = JSON.parse(fetchedScript.script.json_string);
 			script = fetchedScript;
+			thisObj.scriptName = script.script.script_name;
 			script.nodes = {};
 			var entry = null;
 			jQuery.each(script.data, function (idx, val) {

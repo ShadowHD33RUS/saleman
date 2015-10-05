@@ -611,7 +611,7 @@ jsonObj.quickLink = val.getQuickLink();
         }
     };
 }]);
-;app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', 'notification', 'modal', function ($rootScope, $routeParams, api, notification, modal) {
+;app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', 'notification', 'modal', '$location', function ($rootScope, $routeParams, api, notification, modal, $location) {
     
     // View variables
     
@@ -661,6 +661,7 @@ jsonObj.quickLink = val.getQuickLink();
             thisObj.isLoading = false;
             $rootScope.$digest();
         });
+        this.scriptId = id;
     } else { // Create new script
         thisObj.isLoading = false;
         var currentScript = {
@@ -720,6 +721,17 @@ jsonObj.quickLink = val.getQuickLink();
             cnv.zoomToPoint(zoomPoint, cnv.getZoom() / 1.1);
             origin.x *= 1.1;
             origin.y *= 1.1;
+        }
+    };
+    var scriptAddingComplete = function(){
+        $location.path('/scripttextedit/'+thisObj.scriptId);
+        $rootScope.$digest();
+    };
+    this.switchToTextMode = function() {
+        jQuery('#saveScript').click();
+        if(this.scriptId >= 0) {
+            $location.path('/scripttextedit/'+thisObj.scriptId);
+            $rootScope.$digest();
         }
     };
 
@@ -835,9 +847,12 @@ jsonObj.quickLink = val.getQuickLink();
         currentScript.data = d.saveToJson();
         currentScript.name = thisObj.scriptName;
         //TODO: Block all UI
+        console.log(e);
         if (isNew) {
             api.addScript(currentScript, function(result){
                 currentScript.id = result.script_id;
+                thisObj.scriptId = result.script_id;
+                scriptAddingComplete();
                 isNew = false;
                 //TODO: Unblock all UI
             });
@@ -1058,7 +1073,7 @@ jsonObj.quickLink = val.getQuickLink();
 		}
 		return result;
 	};
-}]);;app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', '$scope', function (api, $rootScope, $routeParams, notification, modal, $scope) {
+}]);;app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', '$scope', '$location', function (api, $rootScope, $routeParams, notification, modal, $scope, $location) {
 	
 	//Public variables
 	
@@ -1069,6 +1084,7 @@ jsonObj.quickLink = val.getQuickLink();
 		question: '',
 		answers: []
 	};
+	this.scriptId = -1;
 	
 	this.newAnswer = {
 		id: -1,
@@ -1084,6 +1100,7 @@ jsonObj.quickLink = val.getQuickLink();
 			this.id = -1;
 		}
 	};
+	this.scriptName = '123';
 	
 	//Private variables and functions
 	
@@ -1199,7 +1216,32 @@ jsonObj.quickLink = val.getQuickLink();
 		}
 		this.newAnswer.filtered = a;
 	};
-	
+	this.saveScript = function(callback) {
+		var result = {
+			data: [],
+			name: ''
+		};
+		jQuery.each(script.nodes, function(idx, val) {
+			result.data.push(val);
+		});
+		result.name = this.scriptName	;
+		if(thisObj.scriptId) {
+			result.id = thisObj.scriptId;
+			api.updateScript(result, function(){
+				callback(result.id);
+			});
+		} else {
+			api.addScript(result, function(res){
+				callback(res.script_id);
+			});
+		}
+	};
+	this.switchToTree = function() {
+		this.saveScript(function(id){
+			$location.path('/scripttree/'+id);
+			$rootScope.$digest();
+		});
+	};
 	this.removeAnswer = function(answer) {
 		delete script.nodes[answer.id];
 		saleman_misc.removeElement(answer.id, script.nodes[this.step.questionId].linksTo);
@@ -1301,6 +1343,7 @@ jsonObj.quickLink = val.getQuickLink();
 	
 	//Initialization code
 	var scriptId = $routeParams.id ? 1 * $routeParams.id : false;
+	this.scriptId = scriptId ? scriptId : -1;
 	var nodeId = $routeParams.nodeId ? 1 * $routeParams.nodeId : false;
 	var thisObj = this;
 	if(scriptId) {
@@ -1308,6 +1351,7 @@ jsonObj.quickLink = val.getQuickLink();
 		api.findScriptById(scriptId, function (fetchedScript) {
 			fetchedScript.data = JSON.parse(fetchedScript.script.json_string);
 			script = fetchedScript;
+			thisObj.scriptName = script.script.script_name;
 			script.nodes = {};
 			var entry = null;
 			jQuery.each(script.data, function (idx, val) {
@@ -1747,6 +1791,7 @@ jsonObj.quickLink = val.getQuickLink();
             }, "Скрипт успешно обновлен", "Невозможно обновить скрипт. Пожалуйста, обратитесь в службу поддержки",
             function(res) {
                 cache.setItem('scripts', script.script_id, script);
+                callback();
             }, errorHandler);
         };
         newApi.removeScript = function (id, callback, undoCallback) {

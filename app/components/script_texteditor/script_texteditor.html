@@ -12,9 +12,23 @@
 	<div class="col m10 s12" style="border-right: 3px solid #ececec" id="scriptrun-area">
 		<div class="row">
 			<div class="card-panel">
-				<button data-position="top" data-delay="300" data-tooltip="Перейти назад" ng-click="scriptEditCtrl.prev()" ng-class="{true: 'btn btn-flat', false: 'btn btn-flat disabled'}[scriptEditCtrl.hasPrev()]"><i class="material-icons">skip_previous</i></button>
-				<button data-position="top" data-delay="300" data-tooltip="Перейти вперед" ng-click="scriptEditCtrl.next()" ng-class="{true: 'btn btn-flat', false: 'btn btn-flat disabled'}[scriptEditCtrl.hasNext()]"><i class="material-icons">skip_next</i></button>
-				<button ng-click="scriptEditCtrl.addAnswer()" class="btn waves-effect waves-light">Добавить вариант ответа</button>
+				<div class="row">
+					<div class="col s12">
+						<div class="input-field">
+							<input type="text" id="scriptName" ng-model="scriptEditCtrl.scriptName" />
+							<label class="active" for="scriptName">Название скрипта</label>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col s12">
+						<button data-position="top" data-delay="300" data-tooltip="Перейти назад" ng-click="scriptEditCtrl.prev()" ng-class="{true: 'btn btn-flat', false: 'btn btn-flat disabled'}[scriptEditCtrl.hasPrev()]"><i class="material-icons">skip_previous</i></button>
+						<button data-position="top" data-delay="300" data-tooltip="Перейти вперед" ng-click="scriptEditCtrl.next()" ng-class="{true: 'btn btn-flat', false: 'btn btn-flat disabled'}[scriptEditCtrl.hasNext()]"><i class="material-icons">skip_next</i></button>
+						<button ng-click="scriptEditCtrl.addAnswer()" class="btn waves-effect waves-light">Добавить вариант ответа</button>
+						<button ng-click="scriptEditCtrl.switchToTree()" class="btn waves-effect waves-light">В дерево скрипта</button>
+						<button ng-click="scriptEditCtrl.saveScript()" class="btn waves-effect waves-light">Сохранить</button>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="row">

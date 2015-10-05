@@ -1,4 +1,4 @@
-app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', 'notification', 'modal', function ($rootScope, $routeParams, api, notification, modal) {
+app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', 'notification', 'modal', '$location', function ($rootScope, $routeParams, api, notification, modal, $location) {
     
     // View variables
     
@@ -48,6 +48,7 @@ app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', '
             thisObj.isLoading = false;
             $rootScope.$digest();
         });
+        this.scriptId = id;
     } else { // Create new script
         thisObj.isLoading = false;
         var currentScript = {
@@ -107,6 +108,17 @@ app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', '
             cnv.zoomToPoint(zoomPoint, cnv.getZoom() / 1.1);
             origin.x *= 1.1;
             origin.y *= 1.1;
+        }
+    };
+    var scriptAddingComplete = function(){
+        $location.path('/scripttextedit/'+thisObj.scriptId);
+        $rootScope.$digest();
+    };
+    this.switchToTextMode = function() {
+        jQuery('#saveScript').click();
+        if(this.scriptId >= 0) {
+            $location.path('/scripttextedit/'+thisObj.scriptId);
+            $rootScope.$digest();
         }
     };
 
@@ -222,9 +234,12 @@ app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', '
         currentScript.data = d.saveToJson();
         currentScript.name = thisObj.scriptName;
         //TODO: Block all UI
+        console.log(e);
         if (isNew) {
             api.addScript(currentScript, function(result){
                 currentScript.id = result.script_id;
+                thisObj.scriptId = result.script_id;
+                scriptAddingComplete();
                 isNew = false;
                 //TODO: Unblock all UI
             });

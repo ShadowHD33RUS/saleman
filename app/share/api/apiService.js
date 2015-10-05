@@ -373,6 +373,7 @@
             }, "Скрипт успешно обновлен", "Невозможно обновить скрипт. Пожалуйста, обратитесь в службу поддержки",
             function(res) {
                 cache.setItem('scripts', script.script_id, script);
+                callback();
             }, errorHandler);
         };
         newApi.removeScript = function (id, callback, undoCallback) {

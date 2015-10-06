@@ -2,14 +2,13 @@ app.controller('AccountsController', ['api', 'notification', '$rootScope', funct
     var thisController = this;
     this.model = new Model({
         account_id: {type: 'number'},
-        first_name: ModelConfig.firstName(true),
-        last_name: ModelConfig.lastName(false),
+        firstname: ModelConfig.firstName(true),
+        lastname: ModelConfig.lastName(false),
         patron: ModelConfig.patron(false),
         email: ModelConfig.email(true),
         password: ModelConfig.password(false)
     });
     this.perms = {
-        scriptReadPermission: false,
         scriptEditPermission: false,
         clientReadPermission: false,
         clientEditPermission: false
@@ -21,12 +20,12 @@ app.controller('AccountsController', ['api', 'notification', '$rootScope', funct
 
     this.save = function () {
         toggleEditBox(false);
-        if (this.model.manager_id) {
+        if (this.model.account_id.data > 0) {
             api.updateAccount(this.model.toJson(), function (result) {
                 if (result.code !== '1') {
                     toggleEditBox(true);
                 } else {
-                    api.setPermission(thisController.model.manager_id, thisController.perms, function () {
+                    api.setPermission(thisController.model.account_id.data, thisController.perms, function () {
                         toggleEditBox(true);
                     });
                 }
@@ -56,7 +55,7 @@ app.controller('AccountsController', ['api', 'notification', '$rootScope', funct
 
     this.selectAccount = function (account) {
         toggleEditBox(false);
-        this.model.manager_id = account.manager_id;
+        this.model.account_id.data = account.manager_id;
         this.model.populate(account);
         api.getAccount(account.manager_id, function (result) {
             thisController.model.populate(result.account.account);

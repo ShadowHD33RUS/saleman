@@ -7,21 +7,21 @@
                 <div class="col s12">
                     <div class="input-field">
                         <input type="text" id="last_name"
-                        ng-model="accountsCtrl.model.last_name.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.last_name.valid]"
+                        ng-model="accountsCtrl.model.lastname.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.lastname.valid]"
                         ng-blur="accountsCtrl.model.validate()"
                         >
-                        <label data-error="{{accountsCtrl.model.last_name.msg}}" for="last_name">Фамилия</label>
+                        <label data-error="{{accountsCtrl.model.lastname.msg}}" for="last_name">Фамилия</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
                         <input type="text" id="first_name"
-                        ng-model="accountsCtrl.model.first_name.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.first_name.valid]"
+                        ng-model="accountsCtrl.model.firstname.data"
+                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.firstname.valid]"
                         ng-blur="accountsCtrl.model.validate()"
                         >
-                        <label data-error="{{accountsCtrl.model.first_name.msg}}" for="first_name">Имя</label>
+                        <label data-error="{{accountsCtrl.model.firstname.msg}}" for="first_name">Имя</label>
                     </div>
                 </div>
                 <div class="col s12">
@@ -55,10 +55,6 @@
                     </div>
                 </div>
                 <p class="flow-text">Права доступа</p>
-                <p>
-                    <input type="checkbox" class="filled-in" id="readSc" ng-model="accountsCtrl.perms.scriptReadPermission" />
-                    <label for="readSc">Чтение скрипта</label>
-                </p>
                 <p>
                     <input type="checkbox" class="filled-in" id="editSc" ng-model="accountsCtrl.perms.scriptEditPermission" />
                     <label for="editSc">Редактирование скрипта</label>

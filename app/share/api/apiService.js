@@ -2,7 +2,7 @@
     
     //Constants
     var MAX_CLIENTS = 30;
-    var urlRoot = 'http://185.87.49.173:8080/saleman';
+    var urlRoot = 'http://10.42.0.90:8080/saleman';
 
     var currentUser = null;
 
@@ -228,9 +228,7 @@
             if(!page) page = 0;
             sendRequest('/api/client/getClients', {
                 data: {
-                    "firstname":"",
-                    "lastname":"",
-                    "patron":"",
+                    "search_string": '',
                     "count": MAX_CLIENTS,
                     "currentPosition":page
                 }
@@ -250,9 +248,7 @@
                 if(!page) page = 0;
                 sendRequest('/api/client/getClients', {
                     data: {
-                        "firstname": '',
-                        "lastname": searchString,
-                        "patron": '',
+                        "search_string": searchString,
                         "count": MAX_CLIENTS,
                         "currentPosition": page
                     }
@@ -412,13 +408,13 @@
         
         function mapToAccount(raw) {
             var result = {
-                first_name: raw.first_name,
-                last_name: raw.last_name,
+                first_name: raw.firstname,
+                last_name: raw.lastname,
                 patron: raw.patron,
                 email: raw.email,
             };
             if(raw.password && raw.password.length > 0) result.password = raw.password;
-            if(raw.manager_id) result.account_id = raw.manager_id;
+            if(raw.account_id) result.account_id = raw.account_id;
             return result;
         }
 
@@ -454,6 +450,7 @@
         newApi.findAccounts = function(page, callback) {
             sendRequest('/api/account/getManagers', {
                 data: {
+                    "search_string": '',
                     currentPosition: page && page >= 0 ? page : 0,
                     count: MAX_CLIENTS
                 }
@@ -478,7 +475,7 @@
             for(var i in perms) {
                 opts[i] = perms[i];
             }
-            sendRequest('api/permission/give', {data:opts}, 'Права доступа применены', null, callback, errorHandler);
+            sendRequest('/api/permission/give', {data:opts}, 'Права доступа применены', null, callback, errorHandler);
         };
     
         return newApi;

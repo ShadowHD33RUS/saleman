@@ -68,12 +68,7 @@
 				]
 			};
 
-
-		//--------------------------------------------------------
-		//Initialization code
-		//--------------------------------------------------------
-
-		$rootScope.$on('authChange', function () {
+		function changeData() {
 			thisController.loggedIn = api.isLoggedIn();
 			thisController.username = thisController.loggedIn ? api.getCurrentUser().getFullName() : '';
 			
@@ -98,8 +93,17 @@
 					}
 				}
 			}
-			$rootScope.$digest();
 			$location.path("/scripts");
-		});
+		}
+
+		//--------------------------------------------------------
+		//Initialization code
+		//--------------------------------------------------------
+
+		$rootScope.$on('authChange', changeData);
+
+		if(this.loggedIn) {
+			changeData();
+		}
 	}]);
 })();

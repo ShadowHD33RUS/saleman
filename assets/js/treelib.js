@@ -1,3 +1,4 @@
+"use strict";
 var treelib_util = {
   removeElementFromArray: function (arr,val,deleteFirst) {
     for (var i = 0; i < arr.length; i++) {
@@ -205,8 +206,8 @@ var treelib = {
       // result.result = onLine1 && onLine2;
       // return result;
       var ip = {x: 0, y: 0, result: false},
-      nx = (p4x - p3x) * (p1y - p3y) - (p4y - p3y) * (p1x - p3x);
-      ny = (p2x - p1x) * (p1y - p3y) - (p2y - p1y) * (p1x - p3x);
+      nx = (p4x - p3x) * (p1y - p3y) - (p4y - p3y) * (p1x - p3x),
+      ny = (p2x - p1x) * (p1y - p3y) - (p2y - p1y) * (p1x - p3x),
       dn = (p4y - p3y) * (p2x - p1x) - (p4x - p3x) * (p2y - p1y);
 
       nx /= dn;

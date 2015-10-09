@@ -16,7 +16,8 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				files: {
-					'assets/appdist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+					'assets/appdist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>'],
+					'assets/appdist/app.init.min.js': ['app/app.init.js']
 				}
 			}
 		}

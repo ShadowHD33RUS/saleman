@@ -6,8 +6,8 @@
 
 <div class="row" ng-show="editorCtrl.isLoading">
 	<div class="progress">
-      <div class="indeterminate"></div>
-  </div>
+		<div class="indeterminate"></div>
+	</div>
 </div>
 
 <div class="row">
@@ -18,7 +18,7 @@
 		</div>
 	</div>
 	<div class="col s12 m4 ">
-		<a style="margin-top: 15px" class="waves-effect waves-light btn" href="" id="saveScript">Сохранить</a>
+		<a style="margin-top: 15px" class="waves-effect waves-light btn" href="" ng-click="editorCtrl.saveScript()">Сохранить</a>
 		<a style="margin-top: 15px" class="waves-effect waves-light btn" ng-click="editorCtrl.switchToTextMode()">Перейти в текстовый редактор</a>
 	</div>
 	<div class="col s12 m4">
@@ -39,27 +39,28 @@
 				</div>
 			</div>
 			<div class="col s12 center-align">
-				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" id="addNew">Создать узел</a>
+				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" ng-click="editorCtrl.addNew()">Создать узел</a>
 			</div>
 			<div class="col s12 center-align">
-				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" id="buildTree">Перестроить граф</a>
+				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" ng-click="editorCtrl.buildTree()">Перестроить граф</a>
 			</div>
 			<div class="col s12 center-align">
-				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" id="transition">Переход в другой скрипт</a>
+				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" ng-click="editorCtrl.addTransition()">Переход в другой скрипт</a>
 			</div>
 			<div class="col s12 center-align">
-				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" id="addToFast">Добавить в быстрые ссылки</a>
+				<a style="width:100%;margin-bottom: 10px" class="waves-effect waves-light btn green darken-2" href="" ng-click="editorCtrl.addToFast()">Добавить в быстрые ссылки</a>
 			</div>
 
 			<div class="col s12">
 				<ul class="collection with-header">
-	        <li class="collection-header"><h4>Быстрые ссылки</h4></li>
-	        <li class="collection-item" ng-repeat="lnk in editorCtrl.quickLinks">
+					<li class="collection-header">
+						<h4>Быстрые ссылки</h4></li>
+					<li class="collection-item" ng-repeat="lnk in editorCtrl.quickLinks">
 						<div>{{lnk.text}}
 							<a href="" class="secondary-content" ng-click="editorCtrl.removeQuickLink(lnk)"><i class="material-icons">close</i></a>
 						</div>
 					</li>
-	      </ul>
+				</ul>
 			</div>
 
 		</div>
@@ -79,7 +80,7 @@
 		<h4>Переход в другой скрипт</h4>
 		<p id="errorDesc">Выберите скрипт, на который будет ссылаться выделенный узел:</p>
 		<div class="collection">
-			<a href="" class="collection-item" ></a>
+			<a href="" class="collection-item"></a>
 		</div>
 	</div>
 	<div class="modal-footer">

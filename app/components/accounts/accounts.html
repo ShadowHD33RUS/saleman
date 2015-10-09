@@ -6,51 +6,36 @@
             <div class="row">
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="last_name"
-                        ng-model="accountsCtrl.model.lastname.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.lastname.valid]"
-                        ng-blur="accountsCtrl.model.validate()"
-                        >
+                        <input type="text" id="last_name" ng-model="accountsCtrl.model.lastname.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.lastname.valid]"
+                        ng-blur="accountsCtrl.model.validate()">
                         <label data-error="{{accountsCtrl.model.lastname.msg}}" for="last_name">Фамилия</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="first_name"
-                        ng-model="accountsCtrl.model.firstname.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.firstname.valid]"
-                        ng-blur="accountsCtrl.model.validate()"
-                        >
+                        <input type="text" id="first_name" ng-model="accountsCtrl.model.firstname.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.firstname.valid]"
+                        ng-blur="accountsCtrl.model.validate()">
                         <label data-error="{{accountsCtrl.model.firstname.msg}}" for="first_name">Имя</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="patron"
-                        ng-model="accountsCtrl.model.patron.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.patron.valid]"
-                        ng-blur="accountsCtrl.model.validate()"
-                        >
+                        <input type="text" id="patron" ng-model="accountsCtrl.model.patron.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.patron.valid]"
+                        ng-blur="accountsCtrl.model.validate()">
                         <label data-error="{{accountsCtrl.model.patron.msg}}" for="patron">Отчество</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="email"
-                        ng-model="accountsCtrl.model.email.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.email.valid]"
-                        ng-blur="accountsCtrl.model.validate()"
-                        >
+                        <input type="text" id="email" ng-model="accountsCtrl.model.email.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.email.valid]"
+                        ng-blur="accountsCtrl.model.validate()">
                         <label data-error="{{accountsCtrl.model.email.msg}}" for="email">E-mail</label>
                     </div>
                 </div>
                 <div class="col s12">
                     <div class="input-field">
-                        <input type="text" id="password"
-                        ng-model="accountsCtrl.model.password.data"
-                        ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.password.valid]"
-                        ng-bl
-                        >
+                        <input type="text" id="password" ng-model="accountsCtrl.model.password.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.password.valid]"
+                        ng-bl>
                         <label for="password">Пароль (оставить пустым, если не хотите менять)</label>
                     </div>
                 </div>
@@ -96,7 +81,8 @@
                 </div>
                 <div class="col s12">
                     <div class="collection">
-                        <a href="" ng-repeat="account in accountsCtrl.filteredAccounts" ng-class="{'collection-item active': accountsCtrl.isActive(account), 'collection-item': !accountsCtrl.isActive(account)}" class="collection-item" ng-click="accountsCtrl.selectAccount(account)">
+                        <a href="" ng-repeat="account in accountsCtrl.filteredAccounts" ng-class="{'collection-item active': accountsCtrl.isActive(account), 'collection-item': !accountsCtrl.isActive(account)}"
+                        class="collection-item" ng-click="accountsCtrl.selectAccount(account)">
                             {{account.email}}
                         </a>
                     </div>

@@ -4,43 +4,28 @@
       <h4>Создание/редактирование клиента</h4>
       <form novalidate="">
         <div class="input-field">
-          <input
-          ng-model="clientsCtrl.clientModel.lastname.data"
-          ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.lastname.valid]"
-          ng-blur="clientCtrl.clientModel.validate()"
-          type="text" id="editSurname">
+          <input ng-model="clientsCtrl.clientModel.lastname.data" ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.lastname.valid]"
+          ng-blur="clientCtrl.clientModel.validate()" type="text" id="editSurname">
           <label for="editSurname" class="active" data-error="{{clientsCtrl.clientModel.lastname.msg}}">Фамилия</label>
         </div>
         <div class="input-field">
-          <input
-          ng-model="clientsCtrl.clientModel.firstname.data"
-          ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.firstname.valid]"
-          ng-blur="clientCtrl.clientModel.validate()"
-          type="text" id="editName">
+          <input ng-model="clientsCtrl.clientModel.firstname.data" ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.firstname.valid]"
+          ng-blur="clientCtrl.clientModel.validate()" type="text" id="editName">
           <label for="editName" class="active" data-error="{{clientsCtrl.clientModel.firstname.msg}}">Имя</label>
         </div>
         <div class="input-field">
-          <input
-          ng-model="clientsCtrl.clientModel.patron.data"
-          ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.patron.valid]"
-          ng-blur="clientsCtrl.clientModel.validate()"
-          type="text" id="editPatron">
+          <input ng-model="clientsCtrl.clientModel.patron.data" ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.patron.valid]"
+          ng-blur="clientsCtrl.clientModel.validate()" type="text" id="editPatron">
           <label for="editPatron" class="active" data-error="{{clientsCtrl.clientModel.patron.msg}}">Отчество</label>
         </div>
         <div class="input-field">
-          <input
-          ng-model="clientsCtrl.clientModel.phone.data"
-          ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.phone.valid]"
-          ng-blur="clientsCtrl.clientModel.validate()"
-          type="text" id="editPhone">
+          <input ng-model="clientsCtrl.clientModel.phone.data" ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.phone.valid]"
+          ng-blur="clientsCtrl.clientModel.validate()" type="text" id="editPhone">
           <label for="editPhone" class="active" data-error="{{clientsCtrl.clientModel.phone.msg}}">Телефон</label>
         </div>
         <div class="input-field">
-          <input
-          ng-model="clientsCtrl.clientModel.email.data"
-          ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.email.valid]"
-          ng-blur="clientsCtrl.clientModel.validate()"
-          type="text" id="editEmail">
+          <input ng-model="clientsCtrl.clientModel.email.data" ng-class="{true: 'valid', false: 'invalid'}[clientsCtrl.clientModel.email.valid]"
+          ng-blur="clientsCtrl.clientModel.validate()" type="text" id="editEmail">
           <label for="editEmail" class="active" data-error="{{clientsCtrl.clientModel.email.msg}}">E-mail</label>
         </div>
       </form>
@@ -51,13 +36,15 @@
     </div>
   </div>
   <div class="col s12 center-align" style="margin-top: 50px" ng-hide="clientsCtrl.loaded">
-    <div class="preloader-wrapper big active " >
+    <div class="preloader-wrapper big active ">
       <div class="spinner-layer spinner-blue-only">
         <div class="circle-clipper left">
           <div class="circle"></div>
-        </div><div class="gap-patch">
+        </div>
+        <div class="gap-patch">
           <div class="circle"></div>
-        </div><div class="circle-clipper right">
+        </div>
+        <div class="circle-clipper right">
           <div class="circle"></div>
         </div>
       </div>
@@ -103,7 +90,7 @@
         </table>
       </div>
       <div class="card-action">
-        
+
       </div>
     </div>
   </div>

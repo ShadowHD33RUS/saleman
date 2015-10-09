@@ -1,8 +1,7 @@
-
-
 app.run(['$rootScope', '$location', 'api', 'notification', function($rootScope, $location, api, notification){
   
   $rootScope.$on("$routeChangeStart", function(event, next, current) {
+    "use strict";
     if(!api.isLoggedIn() && (
       (next.templateUrl !== "app/components/login/login.html") &&
       (next.templateUrl !== "app/components/registration/registration.html") &&

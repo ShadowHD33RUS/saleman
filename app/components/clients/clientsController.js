@@ -1,11 +1,27 @@
-app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', function(api, $rootScope, modal, notification){
+app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', function (api, $rootScope, modal, notification) {
+	"use strict";
+	//--------------------------------------------------------
+	// Closure for this controller
+	//--------------------------------------------------------
+	
 	var thisController = this;
-	thisController.loaded = false;
-	thisController.dataLoading = false;
-	thisController.clients = [];
-	thisController.searchString = '';
-	thisController.currentClient = {};
-	thisController.clientModel = new Model({
+	
+	
+	//--------------------------------------------------------
+	// Controller properties
+	//--------------------------------------------------------
+	
+	this.loaded = false;
+
+	this.dataLoading = false;
+
+	this.clients = [];
+
+	this.searchString = '';
+
+	this.currentClient = {};
+
+	this.clientModel = new Model({
 		email: ModelConfig.email(false),
 		firstname: ModelConfig.firstName(true),
 		lastname: ModelConfig.lastName(false),
@@ -13,49 +29,54 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 		phone: ModelConfig.phone(false)
 	});
 	
-
-	this.doSearch = function() {
+	
+	//--------------------------------------------------------
+	// Controller methods
+	//--------------------------------------------------------
+	
+	this.doSearch = function () {
 		thisController.dataLoading = true;
-		if(thisController.searchString.length > 0) {
-			thisController.clients = api.findClients(thisController.searchString, function(cls){
+		if (thisController.searchString.length > 0) {
+			thisController.clients = api.findClients(thisController.searchString, function (cls) {
 				thisController.clients = cls.clients;
 				thisController.dataLoading = false;
-				if(!thisController.loaded) thisController.loaded = true;
+				if (!thisController.loaded) thisController.loaded = true;
 				$rootScope.$digest();
 			});
 		} else {
-			thisController.clients = api.getAllClients(function(data) {
+			thisController.clients = api.getAllClients(function (data) {
 				thisController.clients = data.clients;
 				thisController.dataLoading = false;
-				if(!thisController.loaded) thisController.loaded = true;
+				if (!thisController.loaded) thisController.loaded = true;
 				$rootScope.$digest();
 			});
 		}
-		if(thisController.clients) {
+		if (thisController.clients) {
 			thisController.loaded = true;
 		}
 	};
 
-	this.edit = function(cl) {
-		for(var k in cl) {
-			if(thisController.clientModel[k]) {
+	this.edit = function (cl) {
+		for (var k in cl) {
+			if (thisController.clientModel[k]) {
 				thisController.clientModel[k].data = cl[k];
 			}
 		}
 		thisController.clientModel.client_id = cl.client_id;
 		jQuery('#clientModal').openModal();
 	};
-	this.save = function() {
+
+	this.save = function () {
 		thisController.clientModel.validate();
-		if(thisController.clientModel.valid) {
+		if (thisController.clientModel.valid) {
 			jQuery('#clientModal').closeModal();
 			this.dataLoading = true;
-			if(thisController.clientModel.client_id)
-				api.updateClient(thisController.clientModel.toJson([]), function(){
+			if (thisController.clientModel.client_id)
+				api.updateClient(thisController.clientModel.toJson([]), function () {
 					thisController.dataLoading = false;
 				});
 			else
-				api.addClient(thisController.clientModel.toJson([]), function(updated){
+				api.addClient(thisController.clientModel.toJson([]), function (updated) {
 					thisController.clients = updated;
 					thisController.dataLoading = false;
 					$rootScope.$digest();
@@ -64,28 +85,34 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 			notification.info('Исправьте данные');
 		}
 	};
-	this.create = function() {
+	this.create = function () {
 		thisController.clientModel.clearData();
 		delete thisController.clientModel.client_id;
 		jQuery('#clientModal').openModal();
 	};
-	this.remove = function(cl) {
+	this.remove = function (cl) {
 		var client = cl;
 		modal.okCancelDialog("Вы уверены, что хотите удалить клиента?",
-			function(){
+			function () {
 				thisController.dataLoading = true;
 				$rootScope.$digest();
-				thisController.clients = api.removeClient(client, function(){
+				thisController.clients = api.removeClient(client, function () {
 					thisController.doSearch();
-				}, function() {
+				}, function () {
 					thisController.dataLoading = true;
 					client.id = undefined;
-					api.addClient(client, function() {
+					api.addClient(client, function () {
 						thisController.doSearch();
 					}, true);
 				});
 			},
-			null,"Внимание");
+			null, "Внимание");
 	};
+	
+	
+	//--------------------------------------------------------
+	// Initialization code
+	//--------------------------------------------------------
+	
 	this.doSearch();
 }]);

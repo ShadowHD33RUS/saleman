@@ -58,7 +58,7 @@
 					{ name: 'Тех. поддержка', location: '#/support', showBlocked: true },
 					{ name: 'Статистика', location: '#/notready', showBlocked: false },
 					{ name: 'Импорт', location: '#/convert', showBlocked: false },
-					{ name: 'Аккаунты', location: '#/accounts', showBlocked: true }
+					{ name: 'Аккаунт', location: '#/accounts', showBlocked: true }
 				],
 				'system-admin': [
 					{ name: 'Цены', location: '/#/home' },
@@ -93,7 +93,7 @@
 					}
 				}
 			}
-			$location.path("/scripts");
+			//$location.path("/scripts");
 		}
 
 		//--------------------------------------------------------

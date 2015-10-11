@@ -1,93 +1,67 @@
 <div class="row">
-    <h3>Управление аккаунтами</h3>
-    <!-- Editor -->
-    <div class="col s12 m6 l8" id="editor">
+    <!--Current account info-->
+    <div class="col l4 m6 s12">
         <div class="card-panel">
+            <h4>Аккаунт</h4>
+            <table class="striped">
+                <tr>
+                    <td>Ваше имя:</td>
+                    <td>{{accountsCtrl.user.fio}}</td>
+                </tr>
+                <tr>
+                    <td>E-mail:</td>
+                    <td>{{accountsCtrl.user.email}}</td>
+                </tr>
+                <tr>
+                    <td>Название компании:</td>
+                    <td>{{accountsCtrl.user.company}}</td>
+                </tr>
+                <tr>
+                    <td>Пароль:</td>
+                    <td><a href="" ng-click="accountsCtrl.changePassword()">Поменять</a></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!--Company money-->
+    <div class="col l4 m6 s12">
+        <div class="card-panel">
+            <h4>Счет</h4>
+            <table>
+                <tr>
+                    <td style="font-size:14pt">Текущее количество денег:</td>
+                    <td style="font-size:14pt">{{accountsCtrl.user.money}} руб.</td>
+                </tr>
+            </table>
             <div class="row">
                 <div class="col s12">
-                    <div class="input-field">
-                        <input type="text" id="last_name" ng-model="accountsCtrl.model.lastname.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.lastname.valid]"
-                        ng-blur="accountsCtrl.model.validate()">
-                        <label data-error="{{accountsCtrl.model.lastname.msg}}" for="last_name">Фамилия</label>
-                    </div>
-                </div>
-                <div class="col s12">
-                    <div class="input-field">
-                        <input type="text" id="first_name" ng-model="accountsCtrl.model.firstname.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.firstname.valid]"
-                        ng-blur="accountsCtrl.model.validate()">
-                        <label data-error="{{accountsCtrl.model.firstname.msg}}" for="first_name">Имя</label>
-                    </div>
-                </div>
-                <div class="col s12">
-                    <div class="input-field">
-                        <input type="text" id="patron" ng-model="accountsCtrl.model.patron.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.patron.valid]"
-                        ng-blur="accountsCtrl.model.validate()">
-                        <label data-error="{{accountsCtrl.model.patron.msg}}" for="patron">Отчество</label>
-                    </div>
-                </div>
-                <div class="col s12">
-                    <div class="input-field">
-                        <input type="text" id="email" ng-model="accountsCtrl.model.email.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.email.valid]"
-                        ng-blur="accountsCtrl.model.validate()">
-                        <label data-error="{{accountsCtrl.model.email.msg}}" for="email">E-mail</label>
-                    </div>
-                </div>
-                <div class="col s12">
-                    <div class="input-field">
-                        <input type="text" id="password" ng-model="accountsCtrl.model.password.data" ng-class="{true: 'valid', false: 'invalid'}[accountsCtrl.model.password.valid]"
-                        ng-bl>
-                        <label for="password">Пароль (оставить пустым, если не хотите менять)</label>
-                    </div>
-                </div>
-                <p class="flow-text">Права доступа</p>
-                <p>
-                    <input type="checkbox" class="filled-in" id="editSc" ng-model="accountsCtrl.perms.scriptEditPermission" />
-                    <label for="editSc">Редактирование скрипта</label>
-                </p>
-                <p>
-                    <input type="checkbox" class="filled-in" id="readCl" ng-model="accountsCtrl.perms.clientReadPermission" />
-                    <label for="readCl">Чтение базы клиентов</label>
-                </p>
-                <p>
-                    <input type="checkbox" class="filled-in" id="editCl" ng-model="accountsCtrl.perms.clientEditPermission" />
-                    <label for="editCl">Редактирование базы клиентов</label>
-                </p>
-                <div class="col s12">
-                    <a href="" class="btn" ng-click="accountsCtrl.save()">Сохранить</a>
+                    <a href="" style="width:100%" class="btn" ng-click="accountsCtrl.addMoney()">Пополнить счет</a>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- List -->
-    <div class="col s12 m6 l4">
+    </div> 
+    
+    <!--Company transaction history-->
+    <div class="col l4 s12">
         <div class="card-panel">
-            <div class="row">
-                <div class="col s12">
-                    <span class="flow-text">Аккаунты</span>
-                    <a href="" style="float:right" class="btn-floating waves-effect waves-light red" ng-click="accountsCtrl.createNew()"><i class="material-icons">add</i></a>
-                </div>
-                <div class="col s10">
-                    <div class="input-field">
-                        <input type="text" id="search" ng-model="accountsCtrl.searchString" ng-change="accountsCtrl.doSearch()">
-                        <label for="search">Фильтр</label>
-                    </div>
-                </div>
-                <div class="col s2">
-                    <div class="input-field">
-                        <div class="btn-flat" style="padding:0">
-                            <i class="material-icons" style="font-size:36px">search</i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col s12">
-                    <div class="collection">
-                        <a href="" ng-repeat="account in accountsCtrl.filteredAccounts" ng-class="{'collection-item active': accountsCtrl.isActive(account), 'collection-item': !accountsCtrl.isActive(account)}"
-                        class="collection-item" ng-click="accountsCtrl.selectAccount(account)">
-                            {{account.email}}
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <h4>История оплаты</h4>
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Дата</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="t in accountsCtrl.transactionHistory">
+                        <td>{{t.title}}</td>
+                        <td>{{t.date | date}}</td>
+                        <td>{{t.sum}} р.</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-    </div>
+    </div> 
 </div>

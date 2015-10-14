@@ -39,7 +39,7 @@
 
   <nav ng-controller="NavbarController as navbar" ng-show="navbar.loggedIn" id="hiden" class="blue darken-1">
     <div class="nav-wrapper">
-      <a href="/dialogs" class="brand-logo">{{navbar.username}}</a>
+      <a href="" style="font-size:18px" class="brand-logo">{{navbar.username}}</a>
       <a href="" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
       <ul class="right hide-on-med-and-down">
         <li ng-repeat="item in navbar.currentMenu" ng-click="navbar.selectMenuItem(item)" ng-class="{active: navbar.menuSelected(item)}"><a href="{{item.location}}">{{item.name}}</a></li>
@@ -47,7 +47,7 @@
       </ul>
       <ul id="nav-mobile" class="side-nav">
         <li ng-repeat="item in navbar.currentMenu" ng-click="navbar.selectMenuItem(item)" ng-class="{active: navbar.menuSelected(item)}"><a href="{{item.location}}">{{item.name}}</a></li>
-        <li><a href="/#/home" ng-click="navbar.logout()">Выйти</a></li>
+        <li><a href="#/home" ng-click="navbar.logout()">Выйти</a></li>
       </ul>
     </div>
   </nav>

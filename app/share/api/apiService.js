@@ -7,6 +7,7 @@
     var MAX_CLIENTS = 30,
         urlRoot = 'http://185.87.49.173:8080/saleman',
         currentUser = null,
+        cacheExpires = 300000, //In ms
 
         cache = {
             __store: {},
@@ -116,10 +117,18 @@
             };
             options.dataType = 'json';
             options.contentType = 'application/json';
-            if (options.data && options.data.json_string) {
-                //Encrypt all new scripts and updates
-                console.log('Encrypting script...');
-                options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.cipherKey).toString();
+            if (options.data) {
+                if(options.data.json_string) {
+                    //Encrypt all new scripts and updates
+                    console.log('Encrypting script...');
+                    options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.companyKey).toString();
+                } else {
+                    for(var clearKey in options.data) {
+                        if(options.data[clearKey] == null || options.data[clearKey].length <= 0 && !(clearKey === 'search_string' || clearKey === 'string')) {
+                            delete options.data[clearKey];
+                        }
+                    }
+                }
             }
             options.data = JSON.stringify(options.data);
             if (!options.method) options.method = "POST";
@@ -131,7 +140,7 @@
                 refreshTokenTimerHandler = setTimeout(refreshAccessToken, (expires_in - 10) * 1000);
             } else {
                 jQuery.ajax({
-                    url: urlRoot + '/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + currentUser.refreshToken,
+                    url: urlRoot + '/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + cache.getItem('tokens', 'refresh'),
                     method: 'GET',
                     success: function (res) {
                         currentUser.accessToken = res.access_token;
@@ -188,29 +197,11 @@
                         expiresIn: result.expires_in
                     };
                     cache.setItem('tokens', 'refresh', result.refresh_token);
-                    refreshAccessToken(20);
+                    refreshAccessToken(result.expires_in);
                     sendRequest("/api/account/getInfo", {
                         data: ''
                     }, hidden ? null : 'Вход успешно выполнен', null, function (result) {
-                        currentUser.firstname = result.account.firstname;
-                        currentUser.lastname = result.account.lastname;
-                        currentUser.patron = result.account.patron;
-                        currentUser.getFullName = function () {
-                            return this.lastname + ' ' + this.firstname + ' ' + this.patron;
-                        };
-                        //Parse permissions
-                        currentUser.perms = {};
-                        jQuery.each(result.account, function (k, v) {
-                            var delim = k.indexOf('Permission');
-                            if (delim != -1) {
-                                currentUser.perms[k.substring(0, delim)] = v;
-                            }
-                        });
-                        currentUser.isAdmin = result.account.admin;
-                        currentUser.blocked = result.company.blocked;
-                        currentUser.nextPayment = result.account.next_payment;
-                        var key = CryptoJS.enc.Utf8.parse(currentUser.email + currentUser.getFullName());
-                        currentUser.cipherKey = CryptoJS.enc.Base64.stringify(key);
+                        jQuery.extend(currentUser, saleman_misc.populateCurrentUser(result));
                         if (callback) callback(result);
                     }, errorHandler);
                 } else {
@@ -302,6 +293,14 @@
                 return result;
             }
         };
+        
+        newApi.findClient = function (id, callback) {
+            sendRequest('/api/client/findById', {
+                data: {
+                    client_id: id
+                }},
+                null, null, callback, null);
+        };
 
         newApi.addClient = function (client, callback, hidden) {
             sendRequest('/api/client/createClient', {
@@ -378,7 +377,12 @@
                         result.script.script.json_string = result.script.script.json_string.replace(/\"/, '"');
                     } else {
                         console.log('Decrypting script...');
-                        result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.cipherKey).toString(CryptoJS.enc.Utf8);
+                        try {
+                            result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.cipherKey).toString(CryptoJS.enc.Utf8);
+                            console.log("Using deprecated decrypt method");
+                        } catch (error) {
+                            result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.companyKey).toString(CryptoJS.enc.Utf8);
+                        }
                     }
                     callback(result.script);
                 }, errorHandler);
@@ -516,4 +520,7 @@
     }]);
 
     cache.init();
+    setInterval(function(){
+        cache.clear();
+    }, cacheExpires);
 })();

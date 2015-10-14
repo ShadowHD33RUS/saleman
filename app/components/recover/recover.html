@@ -8,12 +8,12 @@
             <div class="input-field col s12">
               <input type="text" id="email" ng-class="{true: 'valid', false: 'invalid'}[recoverCtrl.model.email.valid]" ng-model="recoverCtrl.model.email.data"
               ng-blur="recoverCtrl.validate()">
-              <label for="email" data-error="{{recoverCtrl.model.email.msg}}">Ваш e-mail</label>
+              <label for="email" class="active" data-error="{{recoverCtrl.model.email.msg}}">Ваш e-mail</label>
             </div>
           </div>
         </div>
         <div class="card-action">
-          <input type="submit" name="name" id="sendButton" class="btn" value="Отправить">
+          <input type="submit" name="name" id="sendButton" class="btn" value="Восстановить">
           <a href="#/login" style="color:#fff" class="btn">Назад</a>
         </div>
       </form>

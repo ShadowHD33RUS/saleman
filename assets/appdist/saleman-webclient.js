@@ -4,76 +4,84 @@ function loadApplication() {
 	$('#hiden').css('display', 'block');
 }
 
-jQuery(document).ready(function(){
+function populateCurrentUser(response) {
+	var r = {
+		email: response.account.email,
+		firstname: response.account.firstname,
+		lastname: response.account.lastname,
+		patron: response.account.patron,
+		getFullName: function () {
+			return this.lastname + ' ' + this.firstname + ' ' + this.patron;
+		},
+		isAdmin: response.account.admin,
+		blocked: response.company.blocked,
+		nextPayment: response.account.next_payment,
+		companyKey: response.company.company_key,
+		company: response.company.title,
+		money: response.company.money,
+		account_id: response.account.accountId
+	};
+	r.perms = {};
+	jQuery.each(response.account, function (k, v) {
+		var delim = k.indexOf('Permission');
+		if (delim != -1) {
+			r.perms[k.substring(0, delim)] = v;
+		}
+	});
+		
+	//Deprecated, will be removed next month
+	r.cipherKey = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(r.email + r.getFullName()));
+
+	return r;
+}
+
+jQuery(document).ready(function () {
 	jQuery(".button-collapse").sideNav();
 	// jQuery("#hiden").css('display', 'block');
 	var appCache = localStorage.getItem('app_cache');
-	if(appCache) {
-	appCache = JSON.parse(appCache);
-	if(appCache['tokens'] && appCache['tokens']['refresh']) {
-		//We have some refresh token here
-		$.ajax({
-		url: 'http://185.87.49.173:8080/saleman/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token='+appCache['tokens']['refresh'],
-		dataType: 'json',
-		contentType: 'application/json',
-		success: function(data) {
-			var currentUser = {
-			accessToken: data.access_token,
-			refreshToken: data.refresh_token,
-			expiresIn: data.expires_in,
-			};
+	if (appCache) {
+		appCache = JSON.parse(appCache);
+		if (appCache['tokens'] && appCache['tokens']['refresh']) {
+			//We have some refresh token here
 			$.ajax({
-			url: 'http://185.87.49.173:8080/saleman/api/account/getInfo?access_token='+data.access_token,
-			dataType: 'json',
-			method: 'POST',
-			contentType: 'application/json',
-			success: function(data) {
-				currentUser.email = data.account.email,
-				currentUser.firstname = data.account.firstname;
-				currentUser.lastname = data.account.lastname;
-				currentUser.patron = data.account.patron;
-				currentUser.getFullName = function() {
-					return this.lastname + ' ' + this.firstname + ' ' + this.patron;
-				};
-				//Parse permissions
-				currentUser.perms = {};
-				$.each(data.account, function(k,v){
-					var delim = k.indexOf('Permission');
-					if(delim != -1) {
-						currentUser.perms[k.substring(0, delim)] = v;
-					}
-				});
-				currentUser.isAdmin = data.account.admin;
-				currentUser.blocked = data.company.blocked;
-				currentUser.nextPayment = data.account.next_payment;
-				//calculate cipher key
-				var key = CryptoJS.enc.Utf8.parse(currentUser.email+currentUser.getFullName());
-				currentUser.cipherKey = CryptoJS.enc.Base64.stringify(key);
-				
-				angular.currentUser = currentUser;
-				loadApplication();
-			},
-			error: function() {
-				loadApplication();
-			}
-			});
-		},
-		error: function() {
+				url: 'http://185.87.49.173:8080/saleman/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + appCache['tokens']['refresh'],
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function (data) {
+					var currentUser = {
+						accessToken: data.access_token,
+						refreshToken: data.refresh_token,
+						expiresIn: data.expires_in,
+					};
+					$.ajax({
+						url: 'http://185.87.49.173:8080/saleman/api/account/getInfo?access_token=' + data.access_token,
+						dataType: 'json',
+						method: 'POST',
+						contentType: 'application/json',
+						success: function (data) {
+							jQuery.extend(currentUser, saleman_misc.populateCurrentUser(data));
+							angular.currentUser = currentUser;
+							loadApplication();
+						},
+						error: function () {
+							loadApplication();
+						}
+					});
+				},
+				error: function () {
+					loadApplication();
+				}
+			})
+		} else {
 			loadApplication();
 		}
-		})
 	} else {
 		loadApplication();
 	}
-	} else {
-	loadApplication();
-	}
-	
+
 });;/*
   LEARN HOW TO USE COMPOSERS AND COMPRESSORS FOR JAVASCRIPT
 */
-
-"use strict";
 
 var app = angular.module('saleman', ['ngRoute', 'api', 'notify', 'converter']);
 
@@ -91,12 +99,10 @@ app.directive('viewDropdown', function () {
       );
     }
   }
-});;
-"use strict";
-
-app.run(['$rootScope', '$location', 'api', 'notification', function($rootScope, $location, api, notification){
+});;app.run(['$rootScope', '$location', 'api', 'notification', function($rootScope, $location, api, notification){
   
   $rootScope.$on("$routeChangeStart", function(event, next, current) {
+    "use strict";
     if(!api.isLoggedIn() && (
       (next.templateUrl !== "app/components/login/login.html") &&
       (next.templateUrl !== "app/components/registration/registration.html") &&
@@ -153,6 +159,11 @@ app.config(['$routeProvider', function($routeProvider){
       controller: 'ScriptRunController',
       controllerAs: 'scriptRunCtrl'
     })
+    .when('/scriptrun/:scriptId/:clientId', {
+      templateUrl: 'app/components/script_run/scriptrun.html',
+      controller: 'ScriptRunController',
+      controllerAs: 'scriptRunCtrl'
+    })
     .when('/support', {
       templateUrl: 'app/components/support/support.html',
       controller: 'SupportController',
@@ -190,7 +201,7 @@ app.config(['$routeProvider', function($routeProvider){
       redirectTo: '/login'
     });
 }]);;app.controller('AccountsController', ['api', 'notification', '$rootScope', function (api, notification, $rootScope) {
-    
+    "use strict";
     //--------------------------------------------------------
     // Closure for this controller
     //--------------------------------------------------------
@@ -202,125 +213,77 @@ app.config(['$routeProvider', function($routeProvider){
     // Controller properties
     //--------------------------------------------------------
     
-    this.model = new Model({
-        account_id: { type: 'number' },
+    this.user = {
+        fio: 'FIO',
+        email: 'qwe@gmail.com',
+        company: 'one shot',
+        money: 100
+    };
+    
+    this.userEditor = new Model({
         firstname: ModelConfig.firstName(true),
         lastname: ModelConfig.lastName(false),
-        patron: ModelConfig.patron(false),
-        email: ModelConfig.email(true),
-        password: ModelConfig.password(false)
+        patron: ModelConfig.patron(false)
     });
-
-    this.perms = {
-        scriptEditPermission: false,
-        clientReadPermission: false,
-        clientEditPermission: false
-    };
-
-    this.searchString = '';
-
-    this.accounts = [];
-
-    this.filteredAccounts = [];
-
+    
+    this.transactionHistory = [
+        
+    ];
+    
     
     //--------------------------------------------------------
     // Controller methods
     //--------------------------------------------------------
 
-    this.save = function () {
-        toggleEditBox(false);
-        if (this.model.account_id.data > 0) {
-            api.updateAccount(this.model.toJson(), function (result) {
-                if (result.code !== '1') {
-                    toggleEditBox(true);
-                } else {
-                    api.setPermission(thisController.model.account_id.data, thisController.perms, function () {
-                        toggleEditBox(true);
-                    });
-                }
-            }, function () {
-                toggleEditBox(true);
+    
+    this.addMoney = function() {
+        notification.info("Оплата временно недоступна");
+        notification.info("О необходимости оплаты мы вас уведомим заранее");
+    };
+
+    this.changeFio = function() {
+        jQuery('#ctrl_modal').openModal();
+    };
+    
+    this.confirmChangeFio = function() {
+        this.userEditor.validate();
+        if(this.userEditor.valid) {
+            var cuser = this.userEditor.toJson();
+            cuser.account_id = user.account_id;
+            api.updateAccount(cuser, function(){
+                user.firstname = cuser.firstname;
+                user.lastname = cuser.lastname;
+                user.patron = cuser.patron;
+                thisController.user.fio = user.getFullName();
+                //notification.info("ФИО изменено");
+                $rootScope.$digest();
             });
         } else {
-            api.createAccount(this.model.toJson(), function (result) {
-                if (result.code !== '1') {
-                    toggleEditBox(true);
-                } else {
-                    api.setPermission(result.account_id, thisController.perms, function () {
-                        toggleEditBox(true);
-                    });
-                }
-            });
+            notification.info('Исправьте поля с красным цветом');
         }
-
     };
-
-    this.createNew = function () {
-        this.model.clearData();
-        jQuery('#editor').find('label').removeClass('active');
-        toggleEditBox(true);
-        //$scope.$apply();
-    };
-
-    this.selectAccount = function (account) {
-        toggleEditBox(false);
-        this.model.account_id.data = account.manager_id;
-        this.model.populate(account);
-        api.getAccount(account.manager_id, function (result) {
-            thisController.model.populate(result.account.account);
-            for (var i in thisController.perms) {
-                thisController.perms[i] = result.account.account[i];
-            }
-            toggleEditBox(true);
-            $rootScope.$digest();
-        });
-        //$scope.$apply();
-    };
-
-    this.doSearch = function () {
-        thisController.filteredAccounts = [];
-        jQuery.each(thisController.accounts, function (k, v) {
-            if (v.email.toLowerCase().indexOf(thisController.searchString.toLowerCase()) !== -1)
-                thisController.filteredAccounts.push(v);
-        });
-        //$scope.$apply();
-    };
-
-    this.isActive = function (account) {
-        return account === this.currentAccount;
-    };
-
+    
 
     //--------------------------------------------------------
     // Private functions and variables
     //--------------------------------------------------------
 
-    var toggleEditBox = function (switchOn) {
-        if (switchOn) {
-            jQuery('#editor').find('input').removeAttr('disabled');
-            jQuery('#editor').find('label').addClass('active');
-            jQuery('#editor').find('a.btn').removeClass('disabled');
-        } else {
-            jQuery('#editor').find('input').attr('disabled', 'true');
-            jQuery('#editor').find('a.btn').addClass('disabled');
-        }
-    };
     
+    var user = null;
     
     //--------------------------------------------------------
     //Initialization code
     //--------------------------------------------------------
     
-    toggleEditBox(false);
-    thisController.filteredAccounts = api.findAccounts(0, function (result) {
-        thisController.accounts = result.managers;
-        thisController.filteredAccounts = thisController.accounts;
-        $rootScope.$digest();
-    });
-    thisController.accounts = thisController.filteredAccounts;
-}]);;app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', function (api, $rootScope, modal, notification) {
-	
+    user = api.getCurrentUser();
+    this.user.fio = user.getFullName();
+    this.user.email = user.email;
+    this.user.company = user.company;
+    this.user.money = user.money;
+    thisController.userEditor.populate(user);
+}]);
+;app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', '$location', function (api, $rootScope, modal, notification, $location) {
+	"use strict";
 	//--------------------------------------------------------
 	// Closure for this controller
 	//--------------------------------------------------------
@@ -339,6 +302,10 @@ app.config(['$routeProvider', function($routeProvider){
 	this.clients = [];
 
 	this.searchString = '';
+	
+	this.scriptSearch = '';
+	
+	this.scripts = [];
 
 	this.currentClient = {};
 
@@ -349,6 +316,21 @@ app.config(['$routeProvider', function($routeProvider){
 		patron: ModelConfig.patron(false),
 		phone: ModelConfig.phone(false)
 	});
+	
+	
+	//--------------------------------------------------------
+	// Private properties and functions
+	//--------------------------------------------------------
+	
+	var scriptSearchTimeout = null;
+	
+	function searchScripts() {
+		thisController.scripts = api.findScripts(thisController.scriptSearch, 0, function(data) {
+			thisController.scripts = data.scripts;
+			$rootScope.$digest();
+		});
+		$rootScope.$digest();
+	}
 	
 	
 	//--------------------------------------------------------
@@ -376,14 +358,17 @@ app.config(['$routeProvider', function($routeProvider){
 			thisController.loaded = true;
 		}
 	};
+	
+	this.doScriptSearch = function(){
+		if(scriptSearchTimeout != null) {
+			clearTimeout(scriptSearchTimeout);
+		}
+		scriptSearchTimeout = setTimeout(searchScripts, 400);
+	};
 
 	this.edit = function (cl) {
-		for (var k in cl) {
-			if (thisController.clientModel[k]) {
-				thisController.clientModel[k].data = cl[k];
-			}
-		}
-		thisController.clientModel.client_id = cl.client_id;
+		thisController.clientModel.populate(cl);
+		thisController.clientModel.id = cl.client_id;
 		jQuery('#clientModal').openModal();
 	};
 
@@ -392,23 +377,26 @@ app.config(['$routeProvider', function($routeProvider){
 		if (thisController.clientModel.valid) {
 			jQuery('#clientModal').closeModal();
 			this.dataLoading = true;
-			if (thisController.clientModel.client_id)
-				api.updateClient(thisController.clientModel.toJson([]), function () {
-					thisController.dataLoading = false;
+			if (thisController.clientModel.id) {
+				var cl = thisController.clientModel.toJson([]);
+				cl.client_id = thisController.clientModel.id;
+				api.updateClient(cl, function () {
+					thisController.doSearch();
 				});
-			else
+			} else {
 				api.addClient(thisController.clientModel.toJson([]), function (updated) {
 					thisController.clients = updated;
 					thisController.dataLoading = false;
 					$rootScope.$digest();
 				});
+			}
 		} else {
 			notification.info('Исправьте данные');
 		}
 	};
 	this.create = function () {
 		thisController.clientModel.clearData();
-		delete thisController.clientModel.client_id;
+		delete thisController.clientModel.id;
 		jQuery('#clientModal').openModal();
 	};
 	this.remove = function (cl) {
@@ -430,6 +418,18 @@ app.config(['$routeProvider', function($routeProvider){
 			null, "Внимание");
 	};
 	
+	this.preRunScript = function(client) {
+		this.currentClient.fio = client.firstname + " " + client.lastname + " " + client.patron;
+		this.currentClient.id = client.client_id;
+		this.doScriptSearch();
+		jQuery('#scriptList').openModal();
+	};
+	
+	this.runScript = function(scriptId){
+		jQuery('#scriptList').closeModal();
+		$location.path('/scriptrun/'+scriptId+"/"+this.currentClient.id);
+	};
+	
 	
 	//--------------------------------------------------------
 	// Initialization code
@@ -437,7 +437,7 @@ app.config(['$routeProvider', function($routeProvider){
 	
 	this.doSearch();
 }]);;app.controller('ConvertController', ['api', 'notification', 'script_converter', function (api, notification, script_converter) {
-    
+    "use strict";
     //--------------------------------------------------------
     // Controller properties
     //--------------------------------------------------------
@@ -476,7 +476,7 @@ app.config(['$routeProvider', function($routeProvider){
     }
 
 }]);;app.controller('LoginController', ['$location', 'api', '$scope', '$rootScope', '$timeout', 'notification', function ($location, api, $scope, $rootScope, $timeout, notification) {
-    
+    "use strict";
     //--------------------------------------------------------
     // Controller properties
     //--------------------------------------------------------
@@ -520,7 +520,7 @@ app.config(['$routeProvider', function($routeProvider){
     };
 }]);
 ;app.controller('RecoverController', ['$location', 'api', '$scope', '$rootScope', '$timeout', 'notification', function ($location, api, $scope, $rootScope, $timeout, notification) {
-
+	"use strict";
 	//--------------------------------------------------------
 	// Controller properties
 	//--------------------------------------------------------
@@ -548,11 +548,15 @@ app.config(['$routeProvider', function($routeProvider){
 			notification.info("Исправьте поля с красным цветом");
 		}
 	};
+	
+	
+	//--------------------------------------------------------
+	// Initialization code
+	//--------------------------------------------------------
+	this.model.email.data = api.getCurrentUser().email;
 }]);
-;"use strict";
-
-app.controller('RegistrationController', ['$location', 'api', '$scope', 'notification', function ($location, api, $scope, notification) {
-    
+;app.controller('RegistrationController', ['$location', 'api', '$scope', 'notification', function ($location, api, $scope, notification) {
+    "use strict";
     //--------------------------------------------------------
     // Controller properties
     //--------------------------------------------------------
@@ -596,10 +600,8 @@ app.controller('RegistrationController', ['$location', 'api', '$scope', 'notific
     
     this.user.validate();
 }]);
-;"use strict";
-
-app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', 'notification', 'modal', '$location', function ($rootScope, $routeParams, api, notification, modal, $location) {
-    
+;app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', 'notification', 'modal', '$location', function ($rootScope, $routeParams, api, notification, modal, $location) {
+    "use strict";
     //--------------------------------------------------------
     // Closure for this controller
     //--------------------------------------------------------
@@ -902,10 +904,8 @@ app.controller('ScriptEditorController', ['$rootScope', '$routeParams', 'api', '
             currentSelection = null;
         }
     });
-}]);;"use strict";
-
-app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', function (api, $rootScope, $routeParams, notification, modal) {
-	
+}]);;app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', function (api, $rootScope, $routeParams, notification, modal) {
+	"use strict";
 	//--------------------------------------------------------
     // Closure for this controller
     //--------------------------------------------------------
@@ -924,14 +924,10 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 
 	this.isLoading = true;
 
+	this.client = new Model(Models.client({}));
+
 	this.manager = {
 		name: api.getCurrentUser().firstname
-	};
-
-	this.client = {
-		name: '',
-		phone: '',
-		address: ''
 	};
 
 	this.step = {
@@ -1004,27 +1000,9 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 	};
 
 	this.saveClient = function () {
-		var words = this.client.name.trim().split(" ");
-		if (words.length == 1) {
-			//Firstname only
-			clientModel.firstname.data = words[0];
-		} else if (words.length == 2) {
-			//Firstname and patron
-			clientModel.firstname.data = words[0];
-			clientModel.patron.data = words[1];
-		} else if (words.length == 3) {
-			//Full fio
-			clientModel.lastname.data = words[0];
-			clientModel.firstname.data = words[1];
-			clientModel.patron.data = words[2];
-		} else {
-			modal.info('В поле "Имя клиента" должно быть либо имя, либо имя-отчество, либо фамилия-имя-отчество');
-		}
-		clientModel.phone.data = this.client.phone;
-		clientModel.email.data = this.client.address;
-		clientModel.validate();
-		if (clientModel.valid) {
-			api.addClient(clientModel.toJson());
+		this.client.validate();
+		if (this.client.valid) {
+			api.addClient(this.client.toJson());
 		} else {
 			notification.info('Данные в форме неверны');
 		}
@@ -1037,8 +1015,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 	var history = {
 		current: 0,
 		data: []
-	},
-		clientModel = new Model(Models.client({}));
+	};
 
 	function parseQuestion(txt) {
 		var result = '',
@@ -1047,18 +1024,11 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 		while (pointer != -1) {
 			result += txt.substring(prevPointer, pointer);
 			var end = txt.indexOf('))', pointer),
-				expr = txt.substring(pointer + 2, end),
-				del = expr.split('.');
-			if (del.length === 2) {
-				if (del[0] === 'manager') {
-					if (del[1] === 'name') {
-						result += thisObj.manager.name;
-					}
-				} else if (del[0] === 'client') {
-					if (del[1] === 'name') {
-						result += thisObj.client.name;
-					}
-				}
+				expr = txt.substring(pointer + 2, end).toLowerCase();
+			if (expr === 'имя клиента') {
+				result += thisObj.client.firstname.data;
+			} else if (expr === 'имя менеджера') {
+				result += thisObj.manager.name;
 			}
 			prevPointer = end + 2;
 			pointer = txt.indexOf('((', prevPointer);
@@ -1094,6 +1064,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
     //--------------------------------------------------------
 
 	if ($routeParams.scriptId) this.scriptId = $routeParams.scriptId * 1;
+	if ($routeParams.clientId) this.client.id = $routeParams.clientId * 1;
 	api.findScriptById(this.scriptId, function (script) {
 		script.data = JSON.parse(script.script.json_string);
 		thisObj.script = script;
@@ -1105,16 +1076,25 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 			}
 			if (val.quickLink) thisObj.quickLinks.push(val);
 		});
-		populateStep(entry);
-		history.data.push(saleman_misc.copyObj(thisObj.step));
-		history.current = history.data.length - 1;
-		thisObj.isLoading = false;
-		$rootScope.$digest();
+		if (thisObj.client.id) {
+			api.findClient(thisObj.client.id, function (resp) {
+				thisObj.client.populate(resp.client.client);
+				populateStep(entry);
+				history.data.push(saleman_misc.copyObj(thisObj.step));
+				history.current = history.data.length - 1;
+				thisObj.isLoading = false;
+				$rootScope.$digest();
+			});
+		} else {
+			populateStep(entry);
+			history.data.push(saleman_misc.copyObj(thisObj.step));
+			history.current = history.data.length - 1;
+			thisObj.isLoading = false;
+			$rootScope.$digest();
+		}
 	});
-}]);;"use strict";
-
-app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', '$scope', '$location', function (api, $rootScope, $routeParams, notification, modal, $scope, $location) {
-	
+}]);;app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams', 'notification', 'modal', '$scope', '$location', function (api, $rootScope, $routeParams, notification, modal, $scope, $location) {
+	"use strict";
 	//--------------------------------------------------------
     // Closure for this controller
     //--------------------------------------------------------
@@ -1125,7 +1105,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
     // Controller properties
     //--------------------------------------------------------
 
-	this.isLoading = false;
+	this.isLoading = true;
 
 	this.quickLinks = [];
 
@@ -1200,6 +1180,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 	};
 
 	this.saveScript = function (callback) {
+		saveCurrentStep();
 		var result = {
 			data: [],
 			name: ''
@@ -1354,12 +1335,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 				});
 			}
 		});
-		if (thisObj.step.questionId > 0) {
-			script.nodes[thisObj.step.questionId].text = thisObj.step.question;
-			jQuery.each(thisObj.step.answers, function (k, v) {
-				script.nodes[v.id].text = v.text;
-			});
-		}
+		saveCurrentStep();
 		thisObj.step = step;
 		setTimeout(function () {
 			jQuery('.dropdown-button').dropdown({
@@ -1403,6 +1379,15 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 		question.isAnswer = false;
 		return question;
 	}
+	
+	function saveCurrentStep() {
+		if (thisObj.step.questionId >= 0) {
+			script.nodes[thisObj.step.questionId].text = thisObj.step.question;
+			jQuery.each(thisObj.step.answers, function (k, v) {
+				script.nodes[v.id].text = v.text;
+			});
+		}
+	}
 
 	
 	//--------------------------------------------------------
@@ -1442,10 +1427,8 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 		}, 0);
 
 	});
-}]);;"use strict";
-
-app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal', function (api, $rootScope, notification, modal) {
-	
+}]);;app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal', function (api, $rootScope, notification, modal) {
+	"use strict";
 	//--------------------------------------------------------
     // Closure for this controller
     //--------------------------------------------------------
@@ -1500,7 +1483,7 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
 	
 	this.doSearch();
 }]);;app.controller('SupportController', ['api', 'notification', function (api, notification) {
-    
+    "use strict";
     //--------------------------------------------------------
     // Controller properties
     //--------------------------------------------------------
@@ -1520,10 +1503,8 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
         api.sendTechSupport("Пользователь " + api.getCurrentUser().email + " (" + api.getCurrentUser().getFullName() + ") прислал письмо в тех. поддержку.\nEmail: " + this.email + "\nТема: " + this.topic + "\nСообщение: " + this.message);
     };
 
-}]);;"use strict";
-
-(function () {
-    
+}]);;(function () {
+    "use strict";
     //--------------------------------------------------------
     // Service variables
     //--------------------------------------------------------
@@ -1531,6 +1512,7 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
     var MAX_CLIENTS = 30,
         urlRoot = 'http://185.87.49.173:8080/saleman',
         currentUser = null,
+        cacheExpires = 300000, //In ms
 
         cache = {
             __store: {},
@@ -1640,10 +1622,18 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
             };
             options.dataType = 'json';
             options.contentType = 'application/json';
-            if (options.data && options.data.json_string) {
-                //Encrypt all new scripts and updates
-                console.log('Encrypting script...');
-                options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.cipherKey).toString();
+            if (options.data) {
+                if(options.data.json_string) {
+                    //Encrypt all new scripts and updates
+                    console.log('Encrypting script...');
+                    options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.companyKey).toString();
+                } else {
+                    for(var clearKey in options.data) {
+                        if(options.data[clearKey] == null || options.data[clearKey].length <= 0 && !(clearKey === 'search_string' || clearKey === 'string')) {
+                            delete options.data[clearKey];
+                        }
+                    }
+                }
             }
             options.data = JSON.stringify(options.data);
             if (!options.method) options.method = "POST";
@@ -1655,7 +1645,7 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
                 refreshTokenTimerHandler = setTimeout(refreshAccessToken, (expires_in - 10) * 1000);
             } else {
                 jQuery.ajax({
-                    url: urlRoot + '/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + currentUser.refreshToken,
+                    url: urlRoot + '/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + cache.getItem('tokens', 'refresh'),
                     method: 'GET',
                     success: function (res) {
                         currentUser.accessToken = res.access_token;
@@ -1712,29 +1702,11 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
                         expiresIn: result.expires_in
                     };
                     cache.setItem('tokens', 'refresh', result.refresh_token);
-                    refreshAccessToken(20);
+                    refreshAccessToken(result.expires_in);
                     sendRequest("/api/account/getInfo", {
                         data: ''
                     }, hidden ? null : 'Вход успешно выполнен', null, function (result) {
-                        currentUser.firstname = result.account.firstname;
-                        currentUser.lastname = result.account.lastname;
-                        currentUser.patron = result.account.patron;
-                        currentUser.getFullName = function () {
-                            return this.lastname + ' ' + this.firstname + ' ' + this.patron;
-                        };
-                        //Parse permissions
-                        currentUser.perms = {};
-                        jQuery.each(result.account, function (k, v) {
-                            var delim = k.indexOf('Permission');
-                            if (delim != -1) {
-                                currentUser.perms[k.substring(0, delim)] = v;
-                            }
-                        });
-                        currentUser.isAdmin = result.account.admin;
-                        currentUser.blocked = result.company.blocked;
-                        currentUser.nextPayment = result.account.next_payment;
-                        var key = CryptoJS.enc.Utf8.parse(currentUser.email + currentUser.getFullName());
-                        currentUser.cipherKey = CryptoJS.enc.Base64.stringify(key);
+                        jQuery.extend(currentUser, saleman_misc.populateCurrentUser(result));
                         if (callback) callback(result);
                     }, errorHandler);
                 } else {
@@ -1826,6 +1798,14 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
                 return result;
             }
         };
+        
+        newApi.findClient = function (id, callback) {
+            sendRequest('/api/client/findById', {
+                data: {
+                    client_id: id
+                }},
+                null, null, callback, null);
+        };
 
         newApi.addClient = function (client, callback, hidden) {
             sendRequest('/api/client/createClient', {
@@ -1902,7 +1882,12 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
                         result.script.script.json_string = result.script.script.json_string.replace(/\"/, '"');
                     } else {
                         console.log('Decrypting script...');
-                        result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.cipherKey).toString(CryptoJS.enc.Utf8);
+                        try {
+                            result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.cipherKey).toString(CryptoJS.enc.Utf8);
+                            console.log("Using deprecated decrypt method");
+                        } catch (error) {
+                            result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.companyKey).toString(CryptoJS.enc.Utf8);
+                        }
                     }
                     callback(result.script);
                 }, errorHandler);
@@ -2040,10 +2025,12 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
     }]);
 
     cache.init();
+    setInterval(function(){
+        cache.clear();
+    }, cacheExpires);
 })();
-;"use strict";
-
-(function () {
+;(function () {
+    "use strict";
     var module = angular.module('converter', []);
     module.factory('script_converter', function () {
         var script_converter = {
@@ -2152,9 +2139,7 @@ app.controller('ScriptsController', ['api', '$rootScope', 'notification', 'modal
         return script_converter;
     });
 })();
-;"use strict";
-
-var saleman_misc = {
+;var saleman_misc = {
 
 	removeElement: function (element, array) {
 		for (var i = 0; i < array.length; i++) {
@@ -2179,12 +2164,41 @@ var saleman_misc = {
 			result[k] = obj[k];
 		}
 		return result;
+	},
+
+	populateCurrentUser: function (response) {
+		var r = {
+			email: response.account.email,
+			firstname: response.account.firstname,
+			lastname: response.account.lastname,
+			patron: response.account.patron,
+			getFullName: function () {
+				return this.lastname + ' ' + this.firstname + ' ' + this.patron;
+			},
+			isAdmin: response.account.admin,
+			blocked: response.company.blocked,
+			nextPayment: response.account.next_payment,
+			companyKey: response.company.company_key,
+			company: response.company.title,
+			money: response.company.money,
+			account_id: response.account.accountId
+		};
+		r.perms = {};
+		jQuery.each(response.account, function (k, v) {
+			var delim = k.indexOf('Permission');
+			if (delim != -1) {
+				r.perms[k.substring(0, delim)] = v;
+			}
+		});
+		
+		//Deprecated, will be removed next month
+		r.cipherKey = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(r.email + r.getFullName()));
+
+		return r;
 	}
 };;/**
 * This library is written to validate data from forms for my application
 */
-
-"use strict";
 
 function overrideLogic(src, opts) {
 	for (var k in src) {
@@ -2195,7 +2209,7 @@ function overrideLogic(src, opts) {
 }
 
 function Model(opts) {
-	
+	"use strict";
 	var thisModel = this,
 		service = {};
 		
@@ -2328,9 +2342,8 @@ var Models = {
 		overrideLogic(result, overrideOpts);
 		return result;
 	}
-};;"use strict";
-
-(function () {
+};;(function () {
+	"use strict";
 	app.controller('NavbarController', ['api', '$rootScope', 'notification', '$location', function (api, $rootScope, notification, $location) {
 		
 		//--------------------------------------------------------
@@ -2389,7 +2402,7 @@ var Models = {
 					{ name: 'Тех. поддержка', location: '#/support', showBlocked: true },
 					{ name: 'Статистика', location: '#/notready', showBlocked: false },
 					{ name: 'Импорт', location: '#/convert', showBlocked: false },
-					{ name: 'Аккаунты', location: '#/accounts', showBlocked: true }
+					{ name: 'Аккаунт', location: '#/accounts', showBlocked: true }
 				],
 				'system-admin': [
 					{ name: 'Цены', location: '/#/home' },
@@ -2399,12 +2412,7 @@ var Models = {
 				]
 			};
 
-
-		//--------------------------------------------------------
-		//Initialization code
-		//--------------------------------------------------------
-
-		$rootScope.$on('authChange', function () {
+		function changeData(flag) {
 			thisController.loggedIn = api.isLoggedIn();
 			thisController.username = thisController.loggedIn ? api.getCurrentUser().getFullName() : '';
 			
@@ -2429,14 +2437,25 @@ var Models = {
 					}
 				}
 			}
-			$rootScope.$digest();
-			$location.path("/scripts");
-		});
-	}]);
-})();;"use strict";
+			if(typeof flag === 'object') {
+				$location.path("/scripts");
+				$rootScope.$digest();
+			}
+			//$location.path("/scripts");
+		}
 
-(function () {
-    
+		//--------------------------------------------------------
+		//Initialization code
+		//--------------------------------------------------------
+
+		$rootScope.$on('authChange', changeData);
+
+		if(this.loggedIn) {
+			changeData(true);
+		}
+	}]);
+})();;(function () {
+    "use strict";
     //--------------------------------------------------------
     // Service variables
     //--------------------------------------------------------

@@ -18,14 +18,10 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 
 	this.isLoading = true;
 
+	this.client = new Model(Models.client({}));
+
 	this.manager = {
 		name: api.getCurrentUser().firstname
-	};
-
-	this.client = {
-		name: '',
-		phone: '',
-		address: ''
 	};
 
 	this.step = {
@@ -98,27 +94,9 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 	};
 
 	this.saveClient = function () {
-		var words = this.client.name.trim().split(" ");
-		if (words.length == 1) {
-			//Firstname only
-			clientModel.firstname.data = words[0];
-		} else if (words.length == 2) {
-			//Firstname and patron
-			clientModel.firstname.data = words[0];
-			clientModel.patron.data = words[1];
-		} else if (words.length == 3) {
-			//Full fio
-			clientModel.lastname.data = words[0];
-			clientModel.firstname.data = words[1];
-			clientModel.patron.data = words[2];
-		} else {
-			modal.info('В поле "Имя клиента" должно быть либо имя, либо имя-отчество, либо фамилия-имя-отчество');
-		}
-		clientModel.phone.data = this.client.phone;
-		clientModel.email.data = this.client.address;
-		clientModel.validate();
-		if (clientModel.valid) {
-			api.addClient(clientModel.toJson());
+		this.client.validate();
+		if (this.client.valid) {
+			api.addClient(this.client.toJson());
 		} else {
 			notification.info('Данные в форме неверны');
 		}
@@ -131,8 +109,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 	var history = {
 		current: 0,
 		data: []
-	},
-		clientModel = new Model(Models.client({}));
+	};
 
 	function parseQuestion(txt) {
 		var result = '',
@@ -141,18 +118,11 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 		while (pointer != -1) {
 			result += txt.substring(prevPointer, pointer);
 			var end = txt.indexOf('))', pointer),
-				expr = txt.substring(pointer + 2, end),
-				del = expr.split('.');
-			if (del.length === 2) {
-				if (del[0] === 'manager') {
-					if (del[1] === 'name') {
-						result += thisObj.manager.name;
-					}
-				} else if (del[0] === 'client') {
-					if (del[1] === 'name') {
-						result += thisObj.client.name;
-					}
-				}
+				expr = txt.substring(pointer + 2, end).toLowerCase();
+			if (expr === 'имя клиента') {
+				result += thisObj.client.firstname.data;
+			} else if (expr === 'имя менеджера') {
+				result += thisObj.manager.name;
 			}
 			prevPointer = end + 2;
 			pointer = txt.indexOf('((', prevPointer);
@@ -188,6 +158,7 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
     //--------------------------------------------------------
 
 	if ($routeParams.scriptId) this.scriptId = $routeParams.scriptId * 1;
+	if ($routeParams.clientId) this.client.id = $routeParams.clientId * 1;
 	api.findScriptById(this.scriptId, function (script) {
 		script.data = JSON.parse(script.script.json_string);
 		thisObj.script = script;
@@ -199,10 +170,21 @@ app.controller('ScriptRunController', ['api', '$rootScope', '$routeParams', 'not
 			}
 			if (val.quickLink) thisObj.quickLinks.push(val);
 		});
-		populateStep(entry);
-		history.data.push(saleman_misc.copyObj(thisObj.step));
-		history.current = history.data.length - 1;
-		thisObj.isLoading = false;
-		$rootScope.$digest();
+		if (thisObj.client.id) {
+			api.findClient(thisObj.client.id, function (resp) {
+				thisObj.client.populate(resp.client.client);
+				populateStep(entry);
+				history.data.push(saleman_misc.copyObj(thisObj.step));
+				history.current = history.data.length - 1;
+				thisObj.isLoading = false;
+				$rootScope.$digest();
+			});
+		} else {
+			populateStep(entry);
+			history.data.push(saleman_misc.copyObj(thisObj.step));
+			history.current = history.data.length - 1;
+			thisObj.isLoading = false;
+			$rootScope.$digest();
+		}
 	});
 }]);

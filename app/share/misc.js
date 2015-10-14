@@ -23,5 +23,36 @@ var saleman_misc = {
 			result[k] = obj[k];
 		}
 		return result;
+	},
+
+	populateCurrentUser: function (response) {
+		var r = {
+			email: response.account.email,
+			firstname: response.account.firstname,
+			lastname: response.account.lastname,
+			patron: response.account.patron,
+			getFullName: function () {
+				return this.lastname + ' ' + this.firstname + ' ' + this.patron;
+			},
+			isAdmin: response.account.admin,
+			blocked: response.company.blocked,
+			nextPayment: response.account.next_payment,
+			companyKey: response.company.company_key,
+			company: response.company.title,
+			money: response.company.money,
+			account_id: response.account.accountId
+		};
+		r.perms = {};
+		jQuery.each(response.account, function (k, v) {
+			var delim = k.indexOf('Permission');
+			if (delim != -1) {
+				r.perms[k.substring(0, delim)] = v;
+			}
+		});
+		
+		//Deprecated, will be removed next month
+		r.cipherKey = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(r.email + r.getFullName()));
+
+		return r;
 	}
 };

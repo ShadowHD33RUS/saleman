@@ -58,6 +58,11 @@ app.config(['$routeProvider', function($routeProvider){
       controller: 'ScriptRunController',
       controllerAs: 'scriptRunCtrl'
     })
+    .when('/scriptrun/:scriptId/:clientId', {
+      templateUrl: 'app/components/script_run/scriptrun.html',
+      controller: 'ScriptRunController',
+      controllerAs: 'scriptRunCtrl'
+    })
     .when('/support', {
       templateUrl: 'app/components/support/support.html',
       controller: 'SupportController',

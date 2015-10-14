@@ -27,4 +27,10 @@ app.controller('RecoverController', ['$location', 'api', '$scope', '$rootScope',
 			notification.info("Исправьте поля с красным цветом");
 		}
 	};
+	
+	
+	//--------------------------------------------------------
+	// Initialization code
+	//--------------------------------------------------------
+	this.model.email.data = api.getCurrentUser().email;
 }]);

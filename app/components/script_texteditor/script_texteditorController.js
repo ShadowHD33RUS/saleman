@@ -10,7 +10,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
     // Controller properties
     //--------------------------------------------------------
 
-	this.isLoading = false;
+	this.isLoading = true;
 
 	this.quickLinks = [];
 
@@ -85,6 +85,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 	};
 
 	this.saveScript = function (callback) {
+		saveCurrentStep();
 		var result = {
 			data: [],
 			name: ''
@@ -239,12 +240,7 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 				});
 			}
 		});
-		if (thisObj.step.questionId > 0) {
-			script.nodes[thisObj.step.questionId].text = thisObj.step.question;
-			jQuery.each(thisObj.step.answers, function (k, v) {
-				script.nodes[v.id].text = v.text;
-			});
-		}
+		saveCurrentStep();
 		thisObj.step = step;
 		setTimeout(function () {
 			jQuery('.dropdown-button').dropdown({
@@ -287,6 +283,15 @@ app.controller('ScriptTextEditorController', ['api', '$rootScope', '$routeParams
 		question.text = 'Новый вопрос';
 		question.isAnswer = false;
 		return question;
+	}
+	
+	function saveCurrentStep() {
+		if (thisObj.step.questionId >= 0) {
+			script.nodes[thisObj.step.questionId].text = thisObj.step.question;
+			jQuery.each(thisObj.step.answers, function (k, v) {
+				script.nodes[v.id].text = v.text;
+			});
+		}
 	}
 
 	

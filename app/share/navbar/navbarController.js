@@ -68,7 +68,7 @@
 				]
 			};
 
-		function changeData() {
+		function changeData(flag) {
 			thisController.loggedIn = api.isLoggedIn();
 			thisController.username = thisController.loggedIn ? api.getCurrentUser().getFullName() : '';
 			
@@ -93,6 +93,10 @@
 					}
 				}
 			}
+			if(typeof flag === 'object') {
+				$location.path("/scripts");
+				$rootScope.$digest();
+			}
 			//$location.path("/scripts");
 		}
 
@@ -103,7 +107,7 @@
 		$rootScope.$on('authChange', changeData);
 
 		if(this.loggedIn) {
-			changeData();
+			changeData(true);
 		}
 	}]);
 })();

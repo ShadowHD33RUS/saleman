@@ -1,4 +1,4 @@
-app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', function (api, $rootScope, modal, notification) {
+app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification', '$location', function (api, $rootScope, modal, notification, $location) {
 	"use strict";
 	//--------------------------------------------------------
 	// Closure for this controller
@@ -18,6 +18,10 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 	this.clients = [];
 
 	this.searchString = '';
+	
+	this.scriptSearch = '';
+	
+	this.scripts = [];
 
 	this.currentClient = {};
 
@@ -28,6 +32,21 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 		patron: ModelConfig.patron(false),
 		phone: ModelConfig.phone(false)
 	});
+	
+	
+	//--------------------------------------------------------
+	// Private properties and functions
+	//--------------------------------------------------------
+	
+	var scriptSearchTimeout = null;
+	
+	function searchScripts() {
+		thisController.scripts = api.findScripts(thisController.scriptSearch, 0, function(data) {
+			thisController.scripts = data.scripts;
+			$rootScope.$digest();
+		});
+		$rootScope.$digest();
+	}
 	
 	
 	//--------------------------------------------------------
@@ -55,14 +74,17 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 			thisController.loaded = true;
 		}
 	};
+	
+	this.doScriptSearch = function(){
+		if(scriptSearchTimeout != null) {
+			clearTimeout(scriptSearchTimeout);
+		}
+		scriptSearchTimeout = setTimeout(searchScripts, 400);
+	};
 
 	this.edit = function (cl) {
-		for (var k in cl) {
-			if (thisController.clientModel[k]) {
-				thisController.clientModel[k].data = cl[k];
-			}
-		}
-		thisController.clientModel.client_id = cl.client_id;
+		thisController.clientModel.populate(cl);
+		thisController.clientModel.id = cl.client_id;
 		jQuery('#clientModal').openModal();
 	};
 
@@ -71,23 +93,26 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 		if (thisController.clientModel.valid) {
 			jQuery('#clientModal').closeModal();
 			this.dataLoading = true;
-			if (thisController.clientModel.client_id)
-				api.updateClient(thisController.clientModel.toJson([]), function () {
-					thisController.dataLoading = false;
+			if (thisController.clientModel.id) {
+				var cl = thisController.clientModel.toJson([]);
+				cl.client_id = thisController.clientModel.id;
+				api.updateClient(cl, function () {
+					thisController.doSearch();
 				});
-			else
+			} else {
 				api.addClient(thisController.clientModel.toJson([]), function (updated) {
 					thisController.clients = updated;
 					thisController.dataLoading = false;
 					$rootScope.$digest();
 				});
+			}
 		} else {
 			notification.info('Исправьте данные');
 		}
 	};
 	this.create = function () {
 		thisController.clientModel.clearData();
-		delete thisController.clientModel.client_id;
+		delete thisController.clientModel.id;
 		jQuery('#clientModal').openModal();
 	};
 	this.remove = function (cl) {
@@ -107,6 +132,18 @@ app.controller('ClientsController', ['api', '$rootScope', 'modal', 'notification
 				});
 			},
 			null, "Внимание");
+	};
+	
+	this.preRunScript = function(client) {
+		this.currentClient.fio = client.firstname + " " + client.lastname + " " + client.patron;
+		this.currentClient.id = client.client_id;
+		this.doScriptSearch();
+		jQuery('#scriptList').openModal();
+	};
+	
+	this.runScript = function(scriptId){
+		jQuery('#scriptList').closeModal();
+		$location.path('/scriptrun/'+scriptId+"/"+this.currentClient.id);
 	};
 	
 	

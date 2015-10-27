@@ -5,7 +5,7 @@
     //--------------------------------------------------------
     
     var MAX_CLIENTS = 30,
-        urlRoot = 'http://185.87.49.173:8080/saleman',
+        urlRoot = appConfig.restRoot,
         currentUser = null,
         cacheExpires = 300000, //In ms
 

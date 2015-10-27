@@ -200,7 +200,66 @@ app.config(['$routeProvider', function($routeProvider){
     .otherwise({
       redirectTo: '/login'
     });
-}]);;app.controller('AccountsController', ['api', 'notification', '$rootScope', function (api, notification, $rootScope) {
+}]);;(function () {
+	"use strict";
+	var appFiles = {
+		debug: [
+			[
+				"assets/js/jquery-2.1.4.min.js",
+				"assets/js/materialize.js",
+				"assets/js/toast.js",
+				"assets/js/tooltip.js",
+				"assets/js/angular.min.js",
+				"assets/js/angular-route.min.js",
+				"assets/js/fabric.min.js",
+				"assets/js/treelib.js",
+				"assets/js/aes.js",
+				"assets/js/enc-base64-min.js"
+			],
+			[
+				"app/app.module.js",
+				"app/app.route.js",
+				"app/share/api/apiService.js",
+				"app/share/navbar/navbarController.js",
+				"app/share/notify/notifyService.js",
+				"app/share/converter/converterService.js",
+				"app/share/model.js",
+				"app/share/misc.js"
+			],
+			[
+				"app/components/clients/clientsController.js",
+				"app/components/login/loginController.js",
+				"app/components/registration/registrationController.js",
+				"app/components/script_editor/scripteditorController.js",
+				"app/components/script_run/scriptrunController.js",
+				"app/components/scripts/scriptsController.js",
+				"app/components/support/supportController.js",
+				"app/components/convert/convertController.js",
+				"app/components/accounts/accountsController.js",
+				"app/components/recover/recoverController.js",
+				"app/components/script_texteditor/script_texteditorController.js"
+			]
+		],
+		production: [
+			[
+				"assets/js/saleman-webclient-libs.min.js"
+			],
+			[
+				"assets/appdist/saleman-webclient.min.js"
+			]
+		]
+	};
+	
+	//Define boostrapper function
+	function bootstrap(fileLists) {
+		var i;
+		for(i = 0; i < fileLists.length; i++) {
+			//Load all files if fileLists[i] or fail
+			
+		}
+	}
+	
+})();;app.controller('AccountsController', ['api', 'notification', '$rootScope', function (api, notification, $rootScope) {
     "use strict";
     //--------------------------------------------------------
     // Closure for this controller
@@ -1503,14 +1562,17 @@ app.config(['$routeProvider', function($routeProvider){
         api.sendTechSupport("Пользователь " + api.getCurrentUser().email + " (" + api.getCurrentUser().getFullName() + ") прислал письмо в тех. поддержку.\nEmail: " + this.email + "\nТема: " + this.topic + "\nСообщение: " + this.message);
     };
 
-}]);;(function () {
+}]);;var appConfig = {
+	debug: true,
+	restRoot: "http://185.87.49.173:8080/saleman"
+};;(function () {
     "use strict";
     //--------------------------------------------------------
     // Service variables
     //--------------------------------------------------------
     
     var MAX_CLIENTS = 30,
-        urlRoot = 'http://185.87.49.173:8080/saleman',
+        urlRoot = appConfig.restRoot,
         currentUser = null,
         cacheExpires = 300000, //In ms
 

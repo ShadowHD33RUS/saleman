@@ -1626,7 +1626,8 @@ app.config(['$routeProvider', function($routeProvider){
                 if(options.data.json_string) {
                     //Encrypt all new scripts and updates
                     console.log('Encrypting script...');
-                    options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.companyKey).toString();
+                    options.data.json_string = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(options.data.json_string)));
+                    //options.data.json_string = CryptoJS.AES.encrypt(JSON.stringify(options.data.json_string), currentUser.companyKey).toString();
                 } else {
                     for(var clearKey in options.data) {
                         if(options.data[clearKey] == null || options.data[clearKey].length <= 0 && !(clearKey === 'search_string' || clearKey === 'string')) {
@@ -1882,12 +1883,13 @@ app.config(['$routeProvider', function($routeProvider){
                         result.script.script.json_string = result.script.script.json_string.replace(/\"/, '"');
                     } else {
                         console.log('Decrypting script...');
-                        try {
+                        result.script.script.json_string = CryptoJS.enc.Base64.parse(result.script.script.json_string).toString(CryptoJS.enc.Utf8);
+                        /*try {
                             result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.cipherKey).toString(CryptoJS.enc.Utf8);
                             console.log("Using deprecated decrypt method");
                         } catch (error) {
                             result.script.script.json_string = CryptoJS.AES.decrypt(result.script.script.json_string, currentUser.companyKey).toString(CryptoJS.enc.Utf8);
-                        }
+                        }*/
                     }
                     callback(result.script);
                 }, errorHandler);

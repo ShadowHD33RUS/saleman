@@ -88,7 +88,7 @@
         function sendRequest(url, options, resultText, validationText, resultCallback, errorCallback, refresh) {
             options.url = urlRoot + url;
             if (currentUser) {
-                options.url += (url.indexOf('?') !== -1 ? '&' : '?') + 'access_token=' + currentUser.accessToken;
+                options.url += (url.indexOf('?') !== -1 ? '&' : '?') + 'access_token=' + cache.getItem("tokens", "access");
             }
             options.success = function (res) {
                 var allGood = false;
@@ -115,13 +115,19 @@
                 if(!refresh && jq.status == 401) {
                     //Try to reload cache
                     cache.init();
-                    refreshAccessToken()
-                    .done(sendRequest(url, options, resultText, validationText, resultCallback, errorCallback, true));
+                    sendRequest(url, options, resultText, validationText, resultCallback, errorCallback, true)
                 } else {
-                    notification.notify('Произошла деавторизация. Перезагрузите страницу');
-                    if(typeof errorCallback === 'function') {
-                        errorCallback();
-                    }
+                    //Try to refresh token
+                    //TODO: prevent infinite cycle
+                    refreshAccessToken()
+                    .done(function(){
+                        sendRequest(url, options, resultText, validationText, resultCallback, errorCallback);
+                    }).fail(function(){
+                        if(typeof errorCallback === 'function') {
+                            errorCallback();
+                        }
+                        notification.info("Произошла ошибка. Обновите страницу");
+                    });
                 }
             };
             options.dataType = 'json';

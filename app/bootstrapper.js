@@ -2,6 +2,7 @@
 	"use strict";
 	var appFiles = {
 		debug: [
+			['assets/js/materialize.min.js'],
 			[
 				"assets/js/toast.js",
 				"assets/js/tooltip.js",
@@ -37,12 +38,9 @@
 			]
 		],
 		production: [
-			[
-				"assets/js/saleman-webclient-libs.min.js"
-			],
-			[
-				"assets/js/saleman-webclient.min.js"
-			]
+			['assets/js/materialize.min.js'],
+			["assets/js/saleman-webclient-libs.min.js"],
+			["assets/js/saleman-webclient.min.js"]
 		]
 	};
 
@@ -147,11 +145,9 @@
 						url: "/" + url,
 						dataType: "text"
 					}).done(function(resp){
-						console.log("Set Last-Modified: ",lastModified.toString());
 						localStorage.setItem(url, resp);
 						localStorage.setItem(url+'_timestamp', lastModified.toString());
 						eval.call(window, resp);
-						console.log("Updating script with: ", resp.substr(0, 20));
 						dfd.resolve();
 					})
 					.fail(function(){

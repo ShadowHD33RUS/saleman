@@ -12,6 +12,10 @@ module.exports = function(grunt) {
 			libs: {
 				src: ['assets/js/aes.js', 'assets/js/angular.min.js', 'assets/js/*js', '!assets/js/jquery*'],
 				dest: 'temp/<%= pkg.name %>-libs.js'
+			},
+			bootstrapper: {
+				src: ['app/config.js', 'app/bootstrapper.js'],
+				dest: 'temp/bootstrapper.js'
 			}
 		},
 		uglify: {
@@ -21,6 +25,7 @@ module.exports = function(grunt) {
 			dist: {
 				files: {
 					'temp/<%= pkg.name %>.min.js': ['<%= concat.app.dest %>'],
+					'temp/bootstrapper.min.js': ['<%= concat.bootstrapper.dest %>'],
 					'temp/<%= pkg.name %>-libs.min.js': ['<%= concat.libs.dest %>']
 				}
 			}
@@ -30,8 +35,7 @@ module.exports = function(grunt) {
 				files: [
 					{src: 'index.html', dest: 'build/index.html'},
 					{src: 'recover.html', dest: 'build/recover.html'},
-					{src: 'app/bootstrapper.js', dest: 'build/app/bootstrapper.js'},
-					{src: 'app/config.js', dest: 'build/app/config.js'},
+					{src: 'temp/bootstrapper.min.js', dest: 'build/app/bootstrapper.js'},
 					{
 						expand: true,
 						src: [

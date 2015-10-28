@@ -78,42 +78,57 @@
 	}
 
 	function init() {
+
+		function authorize() {
+			return $.ajax({
+				url: 'http://185.87.49.173:8080/saleman/api/account/getInfo?access_token=' + appCache['tokens']['access'],
+				dataType: 'json',
+				method: 'POST',
+				contentType: 'application/json',
+			});
+		}
+
+		function authorizeHandler(data) {
+			//Access token is valid. Populate currentUser with data
+			var currentUser = {
+				accessToken: appCache['tokens']['access'],
+				refreshToken: appCache['tokens']['refresh'],
+				expiresIn: new Date(appCache['tokens']['expiresIn']),
+			};
+			jQuery.extend(currentUser, saleman_misc.populateCurrentUser(data));
+			angular.currentUser = currentUser;
+			localStorage.setItem('app_cache', JSON.stringify(appCache));
+			loadApplication();
+		}
+
 		jQuery(".button-collapse").sideNav();
 		// jQuery("#hiden").css('display', 'block');
 		var appCache = localStorage.getItem('app_cache');
 		if (appCache) {
 			appCache = JSON.parse(appCache);
-			if (appCache['tokens'] && appCache['tokens']['refresh']) {
-				//We have some refresh token here
-				$.ajax({
-					url: 'http://185.87.49.173:8080/saleman/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + appCache['tokens']['refresh'],
-					dataType: 'json',
-					contentType: 'application/json',
-					success: function (data) {
-						var currentUser = {
-							accessToken: data.access_token,
-							refreshToken: data.refresh_token,
-							expiresIn: data.expires_in,
-						};
+			if (appCache['tokens'] && appCache['tokens']['refresh'] && appCache['tokens']['access'] && appCache['tokens']['expiresIn']) {
+				//We have access token here. Let's check it
+				authorize()
+					.done(authorizeHandler)
+					.fail(function () {
+						//Try to use refresh token for restoring access token
 						$.ajax({
-							url: 'http://185.87.49.173:8080/saleman/api/account/getInfo?access_token=' + data.access_token,
+							url: 'http://185.87.49.173:8080/saleman/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + appCache['tokens']['refresh'],
 							dataType: 'json',
-							method: 'POST',
 							contentType: 'application/json',
-							success: function (data) {
-								jQuery.extend(currentUser, saleman_misc.populateCurrentUser(data));
-								angular.currentUser = currentUser;
+						}).done(function (data) {
+							//Access token restored. Reauthorize
+							appCache['tokens']['access'] = data.access_token;
+							appCache['tokens']['refresh'] = data.refresh_token;
+							appCache['tokens']['expiresIn'] = data.expires_in;
+							authorize().done(authorizeHandler).fail(function () {
 								loadApplication();
-							},
-							error: function () {
-								loadApplication();
-							}
+							});
+						}).fail(function () {
+							//Can't restore access token
+							loadApplication();
 						});
-					},
-					error: function () {
-						loadApplication();
-					}
-				})
+					});
 			} else {
 				loadApplication();
 			}
@@ -133,7 +148,7 @@
 		//Loader
 		var scriptLoadingPromises = jQuery.map(fileLists[level], function (url) {
 			var dfd = jQuery.Deferred();
-			var headRequest = jQuery.ajax({
+			jQuery.ajax({
 				url: "/" + url,
 				method: 'HEAD'
 			}).done(function (data, status, jq) {
@@ -144,16 +159,16 @@
 					jQuery.ajax({
 						url: "/" + url,
 						dataType: "text"
-					}).done(function(resp){
+					}).done(function (resp) {
 						localStorage.setItem(url, resp);
-						localStorage.setItem(url+'_timestamp', lastModified.toString());
+						localStorage.setItem(url + '_timestamp', lastModified.toString());
 						eval.call(window, resp);
 						dfd.resolve();
 					})
-					.fail(function(){
-						console.error("Cannot load script "+url);
-						dfd.reject();
-					});
+						.fail(function () {
+							console.error("Cannot load script " + url);
+							dfd.reject();
+						});
 				} else {
 					eval.call(window, localStorage.getItem(url));
 					console.log("Loading from cache for " + url);
@@ -165,12 +180,12 @@
 				jQuery.ajax({
 					url: "/" + url,
 					dataType: "script"
-				}).done(function(){
+				}).done(function () {
 					dfd.resolve();
 				})
-				.fail(function(){
-					dfd.reject();
-				});
+					.fail(function () {
+						dfd.reject();
+					});
 			});
 			return dfd.promise();
 		});

@@ -8,7 +8,8 @@
         urlRoot = appConfig.restRoot,
         currentUser = null,
         cacheExpires = 300000, //In ms
-
+        tokenUpdateRate = 10000,
+        
         cache = {
             __store: {},
             setItem: function (collection, dataId, data) {
@@ -63,7 +64,7 @@
             },
             clear: function () {
                 this.__store = {};
-                localStorage.clear();
+                localStorage.removeItem('app_cache');
             }
         };
 
@@ -84,7 +85,7 @@
             notification.info(err.error + ' (' + err.error_description + ')');
         }
 
-        function sendRequest(url, options, resultText, validationText, resultCallback, errorCallback) {
+        function sendRequest(url, options, resultText, validationText, resultCallback, errorCallback, refresh) {
             options.url = urlRoot + url;
             if (currentUser) {
                 options.url += (url.indexOf('?') !== -1 ? '&' : '?') + 'access_token=' + currentUser.accessToken;
@@ -110,9 +111,17 @@
                     resultCallback(res);
                 else if (!allGood && errorCallback) errorCallback(res.code, res.message);
             };
-            options.error = function () {
-                if (errorCallback) {
-                    errorCallback();
+            options.error = function (jq) {
+                if(!refresh && jq.status == 401) {
+                    //Try to reload cache
+                    cache.init();
+                    refreshAccessToken()
+                    .done(sendRequest(url, options, resultText, validationText, resultCallback, errorCallback, true));
+                } else {
+                    notification.notify('Произошла деавторизация. Перезагрузите страницу');
+                    if(typeof errorCallback === 'function') {
+                        errorCallback();
+                    }
                 }
             };
             options.dataType = 'json';
@@ -138,21 +147,20 @@
 
         function refreshAccessToken(expires_in) {
             if (expires_in) {
-                refreshTokenTimerHandler = setTimeout(refreshAccessToken, (expires_in - 10) * 1000);
+                refreshTokenTimerHandler = setTimeout(refreshAccessToken, (expires_in - 5) * 1000);
             } else {
-                jQuery.ajax({
+                return jQuery.ajax({
                     url: urlRoot + '/oauth/token?grant_type=refresh_token&client_id=web-client&refresh_token=' + cache.getItem('tokens', 'refresh'),
-                    method: 'GET',
-                    success: function (res) {
-                        currentUser.accessToken = res.access_token;
-                        currentUser.refreshToken = res.refresh_token;
-                        currentUser.expiresIn = res.expires_in;
-                        cache.setItem('tokens', 'refresh', res.refresh_token);
-                        refreshAccessToken(res.expires_in);
-                    },
-                    error: function () {
-                        notification.notify('Невозможно соединиться с сервером');
-                    }
+                    method: 'GET'
+                })
+                .done(function(res){
+                    currentUser.accessToken = res.access_token;
+                    currentUser.refreshToken = res.refresh_token;
+                    currentUser.expiresIn = new Date(Date.now() + res.expires_in);
+                    cache.setItem('tokens', 'refresh', res.refresh_token);
+                    cache.setItem('tokens', 'access', res.access_token);
+                    cache.setItem('tokens', 'expiresIn', currentUser.expiresIn.toString());
+                    refreshAccessToken(res.expires_in);
                 });
             }
         }
@@ -174,6 +182,12 @@
         // Constructing service object
         //========================================================
         var newApi = {};
+        
+        if (!currentUser && angular.currentUser) {
+            currentUser = angular.currentUser;
+            delete angular.currentUser;
+            refreshAccessToken( (currentUser.expiresIn.getTime() - Date.now())/1000 );
+        }
 
 
         //========================================================
@@ -195,9 +209,11 @@
                         email: email,
                         accessToken: result.access_token,
                         refreshToken: result.refresh_token,
-                        expiresIn: result.expires_in
+                        expiresIn: new Date(Date.now() + result.expires_in*1000)
                     };
                     cache.setItem('tokens', 'refresh', result.refresh_token);
+                    cache.setItem('tokens', 'access', result.access_token);
+                    cache.setItem('tokens', 'expiresIn', currentUser.expiresIn.toString());
                     refreshAccessToken(result.expires_in);
                     sendRequest("/api/account/getInfo", {
                         data: ''

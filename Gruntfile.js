@@ -1,9 +1,18 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
+
+	var config = {
+		debug: 'false',
+		restServerRoot: "http://saleman.biz:8080/saleman"
+	};
+
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		concat: {
 			options: {
-				separator: ';'
+				separator: ';',
+				process: function(src, filepath) {
+					return grunt.template.process(src, {data:config});
+				}
 			},
 			app: {
 				src: ['app/**/*.js', 'app/*.js', '!app/bootstrapper.js', '!app/config.js'],
@@ -33,9 +42,9 @@ module.exports = function(grunt) {
 		copy: {
 			main: {
 				files: [
-					{src: 'index.html', dest: 'build/index.html'},
-					{src: 'recover.html', dest: 'build/recover.html'},
-					{src: 'temp/bootstrapper.min.js', dest: 'build/app/bootstrapper.js'},
+					{ src: 'index.html', dest: 'build/index.html' },
+					{ src: 'recover.html', dest: 'build/recover.html' },
+					{ src: 'temp/bootstrapper.min.js', dest: 'build/app/bootstrapper.js' },
 					{
 						expand: true,
 						src: [
@@ -55,9 +64,9 @@ module.exports = function(grunt) {
 						filter: 'isFile',
 						dest: 'build/app/components'
 					},
-					{expand: true, cwd: 'assets/css/', src: ['**'], filter: 'isFile', dest: 'build/assets/css'},
-					{expand: true, cwd: 'assets/font/', src: ['**'], filter: 'isFile', dest: 'build/assets/font'},
-					{expand: true, cwd: 'assets/img/', src: ['**'], filter: 'isFile', dest: 'build/assets/img'}
+					{ expand: true, cwd: 'assets/css/', src: ['**'], filter: 'isFile', dest: 'build/assets/css' },
+					{ expand: true, cwd: 'assets/font/', src: ['**'], filter: 'isFile', dest: 'build/assets/font' },
+					{ expand: true, cwd: 'assets/img/', src: ['**'], filter: 'isFile', dest: 'build/assets/img' }
 				]
 			}
 		},
@@ -74,11 +83,11 @@ module.exports = function(grunt) {
 			}
 		}
 	});
-	
+
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-sftp-deploy');
-	
+
 	grunt.registerTask('compileApp', ['concat', 'uglify', 'copy']);
 };

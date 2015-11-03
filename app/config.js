@@ -1,5 +1,5 @@
 var appConfig = {
-	debug: false,
+	debug: <%= debug %>,
 	appRoot: "http:/localhost:81",
-	restRoot: "http://saleman.biz:8080/saleman"
+	restRoot: "<%= restServerRoot %>"
 };

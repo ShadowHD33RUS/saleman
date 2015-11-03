@@ -544,7 +544,4 @@
     }]);
 
     cache.init();
-    setInterval(function(){
-        cache.clear();
-    }, cacheExpires);
 })();
